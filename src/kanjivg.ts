@@ -135,12 +135,21 @@ export class KanjiVG {
   }
 
   /**
-   * Look up a kanji by character or code
+   * Look up a kanji by character, code, or variant key
    */
   lookup(input: string | number, options: LookupOptions = {}): KanjiInfo | null {
     try {
-      const code = this.canonicalId(input);
-      const kanji = this.data.kanji[code];
+      let key: string;
+      
+      // If input is a variant key (contains '-'), use it directly
+      if (typeof input === 'string' && input.includes('-')) {
+        key = input;
+      } else {
+        // Otherwise, canonicalize the input to get the base code
+        key = this.canonicalId(input);
+      }
+      
+      const kanji = this.data.kanji[key];
       
       if (!kanji) {
         return null;
@@ -153,6 +162,7 @@ export class KanjiVG {
       return {
         character: kanji.character,
         code: kanji.code,
+        variant: kanji.variant,
         strokeCount: allStrokes.length,
         strokeTypes: allStrokes.map(s => s.type || ''),
         components,
@@ -170,13 +180,12 @@ export class KanjiVG {
    */
   search(character: string, options: LookupOptions = {}): KanjiInfo[] {
     const results: KanjiInfo[] = [];
-    const svgFiles = this.data.index[character] || [];
+    const variantKeys = this.data.index[character] || [];
     
-    for (const svgFile of svgFiles) {
-      const code = svgFile.replace('.svg', '');
-      const kanji = this.data.kanji[code];
+    for (const variantKey of variantKeys) {
+      const kanji = this.data.kanji[variantKey];
       if (kanji) {
-        const info = this.lookup(code);
+        const info = this.lookup(variantKey);
         if (info) {
           results.push(info);
         }

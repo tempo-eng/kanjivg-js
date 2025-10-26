@@ -1,21 +1,32 @@
 # KanjiVG JavaScript Library
 
-A TypeScript/JavaScript library for KanjiVG with stroke order animation and React integration.
+A TypeScript/JavaScript library for looking up Japanese Kanji with stroke order animations and React integration.
+
+This package is forked from [kanjiVG](https://github.com/KanjiVG/kanjivg), a python project for generating kanji vector graphics. KanjiVG-js makes KanjiVG available for integration into javascript/typescript based webapps. A live demonstration can be found at [kanji-companion](https://kanji-companion.com/flashcard/kanji).
 
 ## Features
 
-- 🔍 **Kanji Lookup**: Find kanji by character or Unicode code point
-- 🎨 **SVG Rendering**: Render kanji as SVG with customizable styling
-- ✨ **Stroke Order Animation**: Animate kanji stroke order with timing controls
-- ⚛️ **React Integration**: Ready-to-use React components and hooks
-- 📊 **Component Analysis**: Extract radicals, components, and stroke information
-- 🎯 **TypeScript Support**: Full type definitions included
+- **Kanji Lookup**: Find kanji by character or Unicode code
+- **Variant Support**: Access all writing style variants (Kaisho, VtLst, etc.)
+- **SVG Rendering**: Render kanji as SVG with customizable styling
+- **Stroke Order Animation**: Animate kanji stroke order with timing controls
+- **React Integration**: Ready-to-use React components and hooks
 
 ## Installation
 
 ```bash
 npm install @kanjivg/js
+or
+yarn add @kanjivg/js
 ```
+
+**Library Requirements:**
+- Node.js 14+ or modern browser
+- TypeScript (optional, for type definitions)
+- React 16.8+ (optional, for React components)
+
+**Data Generation Requirements (Optional):**
+- Python 3.6+ (only if you want to regenerate data files)
 
 ## Project Structure
 
@@ -30,9 +41,8 @@ kanjivg_js/
 │   └── utils.ts          # Utility functions
 ├── dist/                  # Built JavaScript files
 ├── data/                  # Pre-generated data files
-│   ├── kanjivg-data.json  # All 6,702 kanji (28MB)
-│   ├── kanjivg-index.json # Character lookup index
-│   └── kanjivg-sample.json # Sample data for testing
+│   ├── kanjivg-data.json  # All 11,661 kanji with variants (53MB)
+│   └── kanjivg-index.json # Character lookup index
 ├── examples/              # Usage examples
 │   └── index.html         # Interactive demo with full dataset
 └── data-generation/        # Complete data generation package
@@ -46,31 +56,82 @@ kanjivg_js/
 
 ## Demo
 
-Try the interactive demo with the full dataset:
+The interactive demo is included in the `examples/` directory. Due to ES module CORS restrictions, it requires a local server to run.
 
-```bash
-# Start a local server
-cd examples
-python3 -m http.server 8000
+**How to use the demo:**
+1. Start a local server: `npx serve .` or `npx http-server -p 8000`
+2. Open `http://localhost:8000/examples/` in your browser
+3. Start searching and animating kanji immediately!
 
-# Open http://localhost:8000 in your browser
+**Note:** The demo requires a local server due to ES module CORS restrictions. It uses the auto-loading functionality to access all 11,661 kanji with variants.
+
+### Using the Full Dataset
+
+To use the complete dataset with all 11,661 kanji (including variants) in your project:
+
+```typescript
+import { getKanjiVG } from '@kanjivg/js';
+
+// Simple async initialization (recommended)
+const kanjivg = await getKanjiVG();
+
+// Now you have access to all 11,661 kanji with variants
+const results = kanjivg.search('且'); // Returns all variants
+console.log(`Found ${results.length} variants of 且`);
+
+results.forEach(result => {
+  console.log(`Variant: ${result.variant || 'base'}`);
+  console.log(`Strokes: ${result.strokeCount}`);
+});
 ```
 
-The demo includes:
-- 🔍 Search any of 6,702 kanji
-- 🎲 Random kanji generator  
-- ✨ Stroke order animation
-- 📊 Complete metadata display
-- 🎮 Interactive controls
+**Quick Test:**
+
+You can test the library immediately in your console:
+
+```bash
+# In your project directory
+node -e "
+import('./dist/core.esm.js').then(async (module) => {
+  const kanjivg = await module.getKanjiVG();
+  console.log('Total kanji:', kanjivg.getTotalCount());
+  const results = kanjivg.search('且');
+  console.log('且 variants:', results.length);
+});
+"
+```
 
 ### Basic Usage
+
+**Simple initialization (recommended):**
+
+```typescript
+import { getKanjiVG, createKanjiVG } from '@kanjivg/js';
+
+// Async initialization (works in both browser and Node.js)
+const kanjivg = await getKanjiVG();
+
+// Sync initialization (requires data parameter)
+const kanjivg = createKanjiVG(customData);
+
+// Use the library
+const results = kanjivg.search('且'); // Returns all variants
+console.log(`Found ${results.length} variants of 且`);
+
+results.forEach(result => {
+  console.log(`Variant: ${result.variant || 'base'}`);
+  console.log(`Strokes: ${result.strokeCount}`);
+});
+```
+
+**Manual data loading (if you generate your own specific data):**
 
 ```typescript
 import { KanjiVG, DataLoader } from '@kanjivg/js';
 
-// Load data
+// Only needed if you want to load custom data files
 const loader = new DataLoader();
-const data = await loader.loadKanjiData('/path/to/index.json', '/path/to/svg/');
+const data = await loader.loadKanjiDataFromJSON('/path/to/kanjivg-data.json', '/path/to/kanjivg-index.json');
 
 // Create KanjiVG instance
 const kanjivg = new KanjiVG(data);
@@ -82,7 +143,7 @@ console.log(kanji.strokeCount); // 8
 console.log(kanji.strokeTypes); // ['㇔', '㇒', '㇐', ...]
 ```
 
-### React Usage
+### React Components
 
 ```tsx
 import React from 'react';
@@ -150,6 +211,35 @@ function AnimatedKanji() {
 
 ## API Reference
 
+### Auto-Loading Functions
+
+#### `getKanjiVG()`
+
+Automatically loads the bundled kanji data and returns a KanjiVG instance.
+
+```typescript
+async function getKanjiVG(): Promise<KanjiVG>
+```
+
+**Example:**
+```typescript
+const kanjivg = await getKanjiVG();
+const results = kanjivg.search('且');
+```
+
+#### `createKanjiVG()`
+
+Creates a KanjiVG instance with provided data.
+
+```typescript
+function createKanjiVG(data: any): KanjiVG
+```
+
+**Example:**
+```typescript
+const kanjivg = createKanjiVG(customData); // Uses provided data
+```
+
 ### Core Classes
 
 #### `KanjiVG`
@@ -160,7 +250,7 @@ Main class for kanji lookup and data extraction.
 class KanjiVG {
   constructor(data: KanjiData)
   lookup(input: string | number, options?: LookupOptions): KanjiInfo | null
-  search(character: string, options?: LookupOptions): KanjiInfo[]
+  search(character: string, options?: LookupOptions): KanjiInfo[] // Returns all variants
   getAllCharacters(): string[]
   getTotalCount(): number
 }
@@ -287,13 +377,9 @@ interface AnimationState {
 }
 ```
 
-## Data Setup
+### Custom Data
 
-The library requires KanjiVG data files. You can either:
-
-1. **Use the provided sample data** (included in the package)
-2. **Convert your own data** using the provided conversion script
-3. **Load data from a server** using the DataLoader
+For users who want to create custom data files:
 
 ### Converting Data
 
@@ -310,12 +396,8 @@ cd data-generation
 python3 convert_data.py
 ```
 
-This will create data files in the `../data/` directory with all 6,702 kanji.
+This will create data files in the `../data/` directory with all kanji. Modify `convert_data.py` if you want to create a custom dataset.
 
-**Requirements:**
-- Python 3.6+ (uses only standard library)
-- ~75MB disk space for SVG files
-- ~2GB RAM for full conversion
 
 ## Styling
 
@@ -339,12 +421,6 @@ The library includes basic CSS classes for styling:
 }
 ```
 
-## Browser Support
-
-- Modern browsers with ES2020 support
-- React 16.8+ (for React components)
-- TypeScript 4.0+ (for TypeScript support)
-
 ## License
 
 This library is released under the Creative Commons Attribution-Share Alike 3.0 License, same as KanjiVG.
@@ -355,6 +431,4 @@ Contributions are welcome! Please see the main KanjiVG repository for contributi
 
 ## Links
 
-- [KanjiVG Website](https://kanjivg.tagaini.net)
-- [GitHub Repository](https://github.com/KanjiVG/kanjivg)
-- [Documentation](https://kanjivg.tagaini.net/documentation)
+- [Kanji companion Website](https://kanji-companion.com)

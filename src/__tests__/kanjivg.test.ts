@@ -21,7 +21,7 @@ describe('KanjiVG', () => {
       }
     },
     index: {
-      '並': ['04e26.svg']
+      '並': ['04e26']
     }
   };
 
@@ -87,6 +87,16 @@ describe('KanjiVG', () => {
     it('should return total number of kanji', () => {
       const count = kanjivg.getTotalCount();
       expect(count).toBe(1);
+    });
+  });
+
+  describe('variant search', () => {
+    it('should demonstrate variant search with mock data', () => {
+      // This test uses the mock data to show the concept
+      // Real variant testing is in variant-search.test.ts
+      const results = kanjivg.search('並');
+      expect(results).toHaveLength(1);
+      expect(results[0].character).toBe('並');
     });
   });
 });

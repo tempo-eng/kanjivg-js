@@ -2,6 +2,8 @@
 
 This directory contains everything needed to generate the JavaScript data files for the KanjiVG library.
 
+**Note:** Python is only used for data conversion. The main library is TypeScript/JavaScript and requires no Python runtime.
+
 ## Contents
 
 - `convert-data.py` - Main conversion script
@@ -27,36 +29,8 @@ python3 convert-data.py
 ```
 
 This will create:
-- `../data/kanjivg-data.json` (28MB) - All kanji data
-- `../data/kanjivg-index.json` (329KB) - Character lookup index
-- `../data/kanjivg-sample.json` (2.6KB) - Sample data for testing
-
-### Generate Sample Data Only
-
-```bash
-cd data-generation
-python3 -c "
-import sys
-sys.path.append('.')
-from convert_data import convert_svg_to_js_data
-from pathlib import Path
-
-# Convert just a few kanji for testing
-sample_files = ['kanji/04e00.svg', 'kanji/04e01.svg', 'kanji/04e02.svg']
-output_dir = Path('../data')
-output_dir.mkdir(exist_ok=True)
-
-kanji_data = {}
-for svg_file in sample_files:
-    result = convert_svg_to_js_data(svg_file, output_dir)
-    if result:
-        kanji_data[result['code']] = result
-
-import json
-with open('../data/sample.json', 'w') as f:
-    json.dump({'kanji': kanji_data}, f, ensure_ascii=False, indent=2)
-"
-```
+- `../data/kanjivg-data.json` (53MB) - All kanji data
+- `../data/kanjivg-index.json` (2.1MB) - Character lookup index
 
 ## Data Structure
 
@@ -85,9 +59,8 @@ The generated JSON follows this structure:
 
 ## File Sizes
 
-- **kanjivg-data.json**: ~28MB (6,702 kanji)
-- **kanjivg-index.json**: ~329KB (character lookup)
-- **kanjivg-sample.json**: ~2.6KB (sample data)
+- **kanjivg-data.json**: ~53MB (11,661 kanji with variants)
+- **kanjivg-index.json**: ~2.1MB (character lookup)
 
 ## Troubleshooting
 
@@ -115,8 +88,7 @@ python3 --version  # Should be 3.6+
 
 The generated data files are used by:
 - `src/data-loader.ts` - Loads data in browser/Node.js
-- `examples/full-dataset.html` - Demonstrates full dataset
-- `examples/basic-usage.html` - Uses sample data
+- `examples/index.html` - Interactive demo with full dataset
 
 ## License
 

@@ -126,6 +126,7 @@ def main():
     # Convert SVG files (all files)
     print("Converting SVG files...")
     kanji_data = {}
+    character_index = {}  # New index: character -> list of variant keys
     svg_files = listSvgFiles(str(kanji_dir))
     
     # Process all files
@@ -142,7 +143,14 @@ def main():
                     "variant": kanji.variant,
                     "strokes": convert_stroke_group(kanji.strokes)
                 }
-                kanji_data[kanji.code] = js_data
+                variant_key = kanji.kId()
+                kanji_data[variant_key] = js_data
+                
+                # Add to character index
+                character = chr(int(kanji.code, 16))
+                if character not in character_index:
+                    character_index[character] = []
+                character_index[character].append(variant_key)
         except Exception as e:
             print(f"Error processing {sfi.path}: {e}")
             continue
@@ -150,7 +158,7 @@ def main():
     # Create final data structure
     data = {
         "kanji": kanji_data,
-        "index": index
+        "index": character_index  # Use new character index instead of old SVG index
     }
     
     # Save to files
@@ -162,22 +170,8 @@ def main():
     
     # Save index only
     with open(output_dir / "kanjivg-index.json", 'w', encoding='utf-8') as f:
-        json.dump(index, f, ensure_ascii=False, indent=2)
+        json.dump(character_index, f, ensure_ascii=False, indent=2)
     
-    # Save sample data for testing
-    sample_kanji = {}
-    sample_codes = ["04e26", "4e00", "4e01", "4e02", "4e03", "4e09", "4e0a", "4e0b", "4e0c", "4e0d"]  # 並, 一, 丁, 七, 万, 三, 上, 下, 不, 与
-    for code in sample_codes:
-        if code in kanji_data:
-            sample_kanji[code] = kanji_data[code]
-    
-    sample_data = {
-        "kanji": sample_kanji,
-        "index": {k: v for k, v in index.items() if any(code in sample_kanji for code in v)}
-    }
-    
-    with open(output_dir / "kanjivg-sample.json", 'w', encoding='utf-8') as f:
-        json.dump(sample_data, f, ensure_ascii=False, indent=2)
     
     print(f"Conversion complete!")
     print(f"Total kanji converted: {len(kanji_data)}")
@@ -185,7 +179,6 @@ def main():
     print(f"Files created:")
     print(f"  - kanjivg-data.json ({len(kanji_data)} kanji)")
     print(f"  - kanjivg-index.json (index only)")
-    print(f"  - kanjivg-sample.json ({len(sample_kanji)} sample kanji)")
 
 if __name__ == "__main__":
     main()

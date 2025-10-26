@@ -100,6 +100,8 @@ export interface KanjiInfo {
   character: string;
   /** Unicode code point */
   code: string;
+  /** Variant identifier if any */
+  variant?: string;
   /** Total number of strokes */
   strokeCount: number;
   /** List of stroke types in order */
