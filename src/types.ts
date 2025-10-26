@@ -68,8 +68,10 @@ export interface StrokeOrderOptions {
   strokeDuration?: number;
   /** Delay between strokes in milliseconds */
   strokeDelay?: number;
-  /** Whether to show stroke numbers */
+  /** Whether to show stroke numbers permanently */
   showNumbers?: boolean;
+  /** Whether to flash stroke numbers briefly during animation */
+  flashNumbers?: boolean;
   /** Whether to loop the animation */
   loop?: boolean;
   /** Custom CSS class for styling */

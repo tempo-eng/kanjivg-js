@@ -12,7 +12,8 @@ export class SVGRenderer {
     this.options = {
       strokeDuration: 800,
       strokeDelay: 200,
-      showNumbers: true,
+      showNumbers: false,
+      flashNumbers: true,
       loop: false,
       className: 'kanjivg-svg',
       width: 109,
@@ -65,10 +66,10 @@ export class SVGRenderer {
     }
 
     // Add stroke numbers if enabled
-    if (opts.showNumbers) {
+    if (opts.showNumbers || opts.flashNumbers) {
       // Get stroke data for positioning
       const allStrokes = this.getAllStrokesFromKanji(kanji);
-      svg += this.createStrokeNumbers(code, strokeTypes.length, allStrokes);
+      svg += this.createStrokeNumbers(code, strokeTypes.length, allStrokes, opts);
     }
 
     svg += `</g>\n</svg>`;
@@ -135,10 +136,10 @@ export class SVGRenderer {
     });
     
     // Add stroke numbers if enabled
-    if (options.showNumbers) {
+    if (options.showNumbers || options.flashNumbers) {
       // Extract stroke data from the SVG for positioning
       const strokeData = this.extractStrokeDataFromSVG(animatedSVG);
-      const numbersSVG = this.createStrokeNumbers(code, strokeTypes.length, strokeData);
+      const numbersSVG = this.createStrokeNumbers(code, strokeTypes.length, strokeData, options);
       // Insert stroke numbers before closing </g> tag
       animatedSVG = animatedSVG.replace('</g>', `${numbersSVG}</g>`);
     }
@@ -246,11 +247,11 @@ export class SVGRenderer {
   /**
    * Create stroke number elements
    */
-  private createStrokeNumbers(code: string, strokeCount: number, strokes: any[] = []): string {
+  private createStrokeNumbers(code: string, strokeCount: number, strokes: any[] = [], options: Required<StrokeOrderOptions>): string {
     let numbers = '';
     
     for (let i = 1; i <= strokeCount; i++) {
-      const delay = (i - 1) * (this.options.strokeDuration + this.options.strokeDelay);
+      const delay = (i - 1) * (options.strokeDuration + options.strokeDelay);
       
       // Calculate position for this stroke number
       let x = 50, y = 50; // Default center position
@@ -261,18 +262,31 @@ export class SVGRenderer {
         y = coords.y;
       }
       
+      // Determine the animation behavior based on options
+      let animationElement = '';
+      let initialOpacity = '0';
+      
+      if (options.showNumbers) {
+        // showNumbers takes precedence - numbers stay visible
+        initialOpacity = '1';
+        // No animation needed for permanent display
+      } else if (options.flashNumbers) {
+        // flashNumbers - current behavior (flash briefly)
+        animationElement = `<animate attributeName="opacity" 
+          values="0;1;0" 
+          dur="${options.strokeDuration}ms" 
+          begin="${delay}ms" 
+          fill="freeze" />`;
+      }
+      
       numbers += `  <text id="kvg:${code}-n${i}" 
         x="${x}" y="${y}" 
         text-anchor="middle" 
         font-family="Arial, sans-serif" 
         font-size="12" 
         fill="#666" 
-        opacity="0">
-        <animate attributeName="opacity" 
-          values="0;1;0" 
-          dur="${this.options.strokeDuration}ms" 
-          begin="${delay}ms" 
-          fill="freeze" />
+        opacity="${initialOpacity}">
+        ${animationElement}
         ${i}
       </text>\n`;
     }

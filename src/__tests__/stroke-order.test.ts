@@ -260,3 +260,88 @@ export function validateStrokeOrder(kanji: KanjiInfo, expectedOrder: string[]): 
 
 // Export the expected stroke orders for use in other tests
 export { EXPECTED_STROKE_ORDER_金, EXPECTED_STROKE_ORDER_語 };
+
+describe('Number Display Options', () => {
+  let kanjivg: KanjiVG;
+  let svgRenderer: SVGRenderer;
+  let kinKanji: KanjiInfo | null;
+
+  beforeAll(async () => {
+    // Load the KanjiVG data using the same approach as existing tests
+    const data = await import('../../data/kanjivg-data.json');
+    kanjivg = new KanjiVG(data.default as KanjiData);
+    svgRenderer = new SVGRenderer();
+    
+    // Get test kanji
+    const results = await kanjivg.search('金');
+    kinKanji = results.length > 0 ? results[0] : null;
+    
+    expect(kinKanji).toBeTruthy();
+  });
+
+  beforeEach(() => {
+    svgRenderer = new SVGRenderer();
+  });
+
+  test('showNumbers: true should display numbers permanently', () => {
+    if (!kinKanji) return;
+    
+    const svg = svgRenderer.render(kinKanji, { showNumbers: true, flashNumbers: false });
+    
+    // Check that numbers are present and have opacity="1"
+    expect(svg).toContain('opacity="1"');
+    expect(svg).toContain(`kvg:${kinKanji.code}-n1`);
+    expect(svg).toContain(`kvg:${kinKanji.code}-n2`);
+    // Should not contain animation elements
+    expect(svg).not.toContain('<animate attributeName="opacity"');
+  });
+
+  test('flashNumbers: true should flash numbers briefly', () => {
+    if (!kinKanji) return;
+    
+    const svg = svgRenderer.render(kinKanji, { showNumbers: false, flashNumbers: true });
+    
+    // Check that numbers are present with animation
+    expect(svg).toContain('opacity="0"');
+    expect(svg).toContain(`kvg:${kinKanji.code}-n1`);
+    expect(svg).toContain(`kvg:${kinKanji.code}-n2`);
+    expect(svg).toContain('<animate attributeName="opacity"');
+    expect(svg).toContain('values="0;1;0"');
+  });
+
+  test('showNumbers: true takes precedence over flashNumbers', () => {
+    if (!kinKanji) return;
+    
+    const svg = svgRenderer.render(kinKanji, { showNumbers: true, flashNumbers: true });
+    
+    // showNumbers should take precedence - numbers stay visible
+    expect(svg).toContain('opacity="1"');
+    expect(svg).toContain(`kvg:${kinKanji.code}-n1`);
+    expect(svg).toContain(`kvg:${kinKanji.code}-n2`);
+    // Should not contain animation elements when showNumbers is true
+    expect(svg).not.toContain('<animate attributeName="opacity"');
+  });
+
+  test('both false should not show numbers at all', () => {
+    if (!kinKanji) return;
+    
+    const svg = svgRenderer.render(kinKanji, { showNumbers: false, flashNumbers: false });
+    
+    // Should not contain any number elements
+    expect(svg).not.toContain(`kvg:${kinKanji.code}-n1`);
+    expect(svg).not.toContain(`kvg:${kinKanji.code}-n2`);
+    expect(svg).not.toContain('<animate attributeName="opacity"');
+  });
+
+  test('default behavior should be flashNumbers: true, showNumbers: false', () => {
+    if (!kinKanji) return;
+    
+    const svg = svgRenderer.render(kinKanji);
+    
+    // Default should be flashNumbers behavior
+    expect(svg).toContain('opacity="0"');
+    expect(svg).toContain(`kvg:${kinKanji.code}-n1`);
+    expect(svg).toContain('<animate attributeName="opacity"');
+    expect(svg).toContain('values="0;1;0"');
+  });
+});
