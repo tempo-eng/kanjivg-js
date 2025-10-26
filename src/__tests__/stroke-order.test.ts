@@ -345,3 +345,75 @@ describe('Number Display Options', () => {
     expect(svg).toContain('values="0;1;0"');
   });
 });
+
+describe('Trace Mode Options', () => {
+  let kanjivg: KanjiVG;
+  let svgRenderer: SVGRenderer;
+  let kinKanji: KanjiInfo | null;
+
+  beforeAll(async () => {
+    // Load the KanjiVG data using the same approach as existing tests
+    const data = await import('../../data/kanjivg-data.json');
+    kanjivg = new KanjiVG(data.default as KanjiData);
+    svgRenderer = new SVGRenderer();
+    
+    // Get test kanji
+    const results = await kanjivg.search('金');
+    kinKanji = results.length > 0 ? results[0] : null;
+    
+    expect(kinKanji).toBeTruthy();
+  });
+
+  beforeEach(() => {
+    svgRenderer = new SVGRenderer();
+  });
+
+  test('showTrace: true should display light grey trace outline', () => {
+    if (!kinKanji) return;
+    
+    const svg = svgRenderer.render(kinKanji, { showTrace: true });
+    
+    // Check that trace elements are present
+    expect(svg).toContain(`kvg:${kinKanji.code}-trace-1`);
+    expect(svg).toContain(`kvg:${kinKanji.code}-trace-2`);
+    expect(svg).toContain('stroke: #cccccc');
+    expect(svg).toContain('opacity: 0.3');
+  });
+
+  test('showTrace: false should not display trace outline', () => {
+    if (!kinKanji) return;
+    
+    const svg = svgRenderer.render(kinKanji, { showTrace: false });
+    
+    // Should not contain any trace elements
+    expect(svg).not.toContain(`kvg:${kinKanji.code}-trace-1`);
+    expect(svg).not.toContain(`kvg:${kinKanji.code}-trace-2`);
+    expect(svg).not.toContain('stroke: #cccccc');
+  });
+
+  test('default behavior should be showTrace: false', () => {
+    if (!kinKanji) return;
+    
+    const svg = svgRenderer.render(kinKanji);
+    
+    // Default should not show trace
+    expect(svg).not.toContain(`kvg:${kinKanji.code}-trace-1`);
+    expect(svg).not.toContain('stroke: #cccccc');
+  });
+
+  test('trace should work with other options', () => {
+    if (!kinKanji) return;
+    
+    const svg = svgRenderer.render(kinKanji, { 
+      showTrace: true, 
+      showNumbers: true, 
+      flashNumbers: false 
+    });
+    
+    // Should have both trace and numbers
+    expect(svg).toContain(`kvg:${kinKanji.code}-trace-1`);
+    expect(svg).toContain(`kvg:${kinKanji.code}-n1`);
+    expect(svg).toContain('stroke: #cccccc');
+    expect(svg).toContain('opacity="1"');
+  });
+});

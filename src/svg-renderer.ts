@@ -14,6 +14,7 @@ export class SVGRenderer {
       strokeDelay: 200,
       showNumbers: false,
       flashNumbers: true,
+      showTrace: false,
       loop: false,
       className: 'kanjivg-svg',
       width: 109,
@@ -57,6 +58,11 @@ export class SVGRenderer {
     // Add stroke paths
     svg += `<g id="kvg:StrokePaths_${code}">\n`;
     
+    // Add trace outline if enabled
+    if (opts.showTrace && svgData) {
+      svg += this.createTraceOutline(code, strokeTypes, svgData);
+    }
+    
     for (let i = 0; i < strokeTypes.length; i++) {
       const strokeId = `kvg:${code}-s${i + 1}`;
       const strokeType = strokeTypes[i];
@@ -87,6 +93,13 @@ export class SVGRenderer {
   ): string {
     // Parse the SVG and add animation to each path
     let animatedSVG = svgData;
+    
+    // Add trace outline if enabled
+    if (options.showTrace) {
+      const traceSVG = this.createTraceOutline(code, strokeTypes, svgData);
+      // Insert trace before the first path element
+      animatedSVG = animatedSVG.replace(/<path/, `${traceSVG}<path`);
+    }
     
     // Find all path elements and add animation
     const pathRegex = /<path([^>]*?)>/g;
@@ -245,8 +258,30 @@ export class SVGRenderer {
   }
 
   /**
-   * Create stroke number elements
+   * Create trace outline elements (light grey static paths)
    */
+  private createTraceOutline(code: string, strokeTypes: string[], svgData: string): string {
+    let trace = '';
+    
+    // Extract all path elements from the SVG data
+    const pathRegex = /<path([^>]*?)>/g;
+    const pathMatches = [...svgData.matchAll(pathRegex)];
+    
+    // Create trace paths for each stroke
+    pathMatches.forEach((match, index) => {
+      if (index < strokeTypes.length) {
+        const attributes = match[1];
+        const strokeId = `kvg:${code}-trace-${index + 1}`;
+        
+        // Create trace path with light grey styling
+        trace += `  <path id="${strokeId}"${attributes}
+          style="fill: none; stroke: #cccccc; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.3;" />
+`;
+      }
+    });
+
+    return trace;
+  }
   private createStrokeNumbers(code: string, strokeCount: number, strokes: any[] = [], options: Required<StrokeOrderOptions>): string {
     let numbers = '';
     

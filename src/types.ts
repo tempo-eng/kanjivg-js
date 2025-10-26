@@ -72,6 +72,8 @@ export interface StrokeOrderOptions {
   showNumbers?: boolean;
   /** Whether to flash stroke numbers briefly during animation */
   flashNumbers?: boolean;
+  /** Whether to show a light grey trace outline of the kanji */
+  showTrace?: boolean;
   /** Whether to loop the animation */
   loop?: boolean;
   /** Custom CSS class for styling */

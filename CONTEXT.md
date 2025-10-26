@@ -48,6 +48,7 @@ This is a TypeScript/JavaScript library that provides kanji lookup with SVG stro
 - Removed KanjiAnimationControls component and animation control methods from React components
 - Simplified KanjiCard to only use animationOptions for configuration
 - Added showNumbers and flashNumbers options for stroke number display control
+- Added showTrace option for displaying light grey kanji outline during animation
 
 ## File Structure
 ```
