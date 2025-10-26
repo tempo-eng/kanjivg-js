@@ -1,0 +1,66 @@
+{
+  "name": "@kanjivg/js",
+  "version": "1.0.0",
+  "description": "TypeScript/JavaScript library for KanjiVG with stroke order animation and React integration",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "data",
+    "examples",
+    "data-generation",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "type-check": "tsc --noEmit",
+    "prepare": "yarn build"
+  },
+  "keywords": [
+    "kanji",
+    "japanese",
+    "svg",
+    "stroke-order",
+    "animation",
+    "react",
+    "nextjs",
+    "typescript"
+  ],
+  "author": "Kanji Companion",
+  "license": "CC-BY-SA-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KanjiVG/kanjivg.git",
+    "directory": "kanjivg_js"
+  },
+  "homepage": "https://kanji-companion.com",
+  "bugs": {
+    "url": "https://github.com/KanjiVG/kanjivg/issues"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^13.4.0",
+    "@types/jest": "^29.5.8",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "rollup": "^4.6.1",
+    "rollup-plugin-dts": "^6.1.0",
+    "ts-jest": "^29.1.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {}
+}
