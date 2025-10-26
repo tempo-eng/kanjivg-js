@@ -12,7 +12,6 @@ export { DataLoader } from './data-loader';
 // React components
 export {
   KanjiSVG,
-  KanjiAnimationControls,
   KanjiCard,
   useKanjiVG
 } from './react-components';
@@ -29,7 +28,6 @@ export type {
   ComponentInfo,
   LookupOptions,
   KanjiSVGProps,
-  KanjiAnimationControlsProps,
   KanjiCardProps
 } from './types';
 

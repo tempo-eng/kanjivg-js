@@ -4,7 +4,6 @@ import {
   StrokeOrderOptions, 
   AnimationState, 
   KanjiSVGProps, 
-  KanjiAnimationControlsProps, 
   KanjiCardProps 
 } from './types';
 import { SVGRenderer } from './svg-renderer';
@@ -52,29 +51,6 @@ export const KanjiSVG: React.FC<KanjiSVGProps> = ({
     };
   }, [autoPlay, kanji, renderer, onAnimationStateChange]);
 
-  const handleStart = useCallback(() => {
-    renderer.startAnimation(kanji, (state) => {
-      setAnimationState(state);
-      onAnimationStateChange?.(state);
-    });
-  }, [kanji, renderer, onAnimationStateChange]);
-
-  const handlePause = useCallback(() => {
-    renderer.pauseAnimation();
-    setAnimationState(renderer.getAnimationState());
-  }, [renderer]);
-
-  const handleResume = useCallback(() => {
-    renderer.resumeAnimation(kanji, (state) => {
-      setAnimationState(state);
-      onAnimationStateChange?.(state);
-    });
-  }, [kanji, renderer, onAnimationStateChange]);
-
-  const handleStop = useCallback(() => {
-    renderer.stopAnimation();
-    setAnimationState(renderer.getAnimationState());
-  }, [renderer]);
 
   return (
     <div ref={containerRef} className={className} style={style}>
@@ -84,62 +60,6 @@ export const KanjiSVG: React.FC<KanjiSVGProps> = ({
 };
 
 
-/**
- * React component for controlling kanji animation
- */
-export const KanjiAnimationControls: React.FC<KanjiAnimationControlsProps> = ({
-  animationState,
-  onStart,
-  onPause,
-  onResume,
-  onStop,
-  className,
-  showProgress = true
-}) => {
-  return (
-    <div className={`kanjivg-controls ${className || ''}`}>
-      <div className="kanjivg-buttons">
-        {!animationState.isPlaying && !animationState.isPaused && (
-          <button onClick={onStart} className="kanjivg-btn kanjivg-btn-start">
-            ▶️ Start
-          </button>
-        )}
-        
-        {animationState.isPlaying && (
-          <button onClick={onPause} className="kanjivg-btn kanjivg-btn-pause">
-            ⏸️ Pause
-          </button>
-        )}
-        
-        {animationState.isPaused && (
-          <button onClick={onResume} className="kanjivg-btn kanjivg-btn-resume">
-            ▶️ Resume
-          </button>
-        )}
-        
-        {(animationState.isPlaying || animationState.isPaused) && (
-          <button onClick={onStop} className="kanjivg-btn kanjivg-btn-stop">
-            ⏹️ Stop
-          </button>
-        )}
-      </div>
-
-      {showProgress && (
-        <div className="kanjivg-progress">
-          <div className="kanjivg-progress-bar">
-            <div 
-              className="kanjivg-progress-fill"
-              style={{ width: `${animationState.progress * 100}%` }}
-            />
-          </div>
-          <span className="kanjivg-progress-text">
-            {animationState.currentStroke} / {animationState.totalStrokes}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-};
 
 
 /**
@@ -148,57 +68,17 @@ export const KanjiAnimationControls: React.FC<KanjiAnimationControlsProps> = ({
 export const KanjiCard: React.FC<KanjiCardProps> = ({
   kanji,
   animationOptions = {},
-  showControls = true,
   showInfo = true,
   className
 }) => {
-  const [animationState, setAnimationState] = useState<AnimationState>({
-    currentStroke: 0,
-    isPlaying: false,
-    isPaused: false,
-    totalStrokes: 0,
-    progress: 0
-  });
-
-  const [renderer] = useState(() => new SVGRenderer(animationOptions));
-
-  const handleStart = useCallback(() => {
-    renderer.startAnimation(kanji, setAnimationState);
-  }, [kanji, renderer]);
-
-  const handlePause = useCallback(() => {
-    renderer.pauseAnimation();
-    setAnimationState(renderer.getAnimationState());
-  }, [renderer]);
-
-  const handleResume = useCallback(() => {
-    renderer.resumeAnimation(kanji, setAnimationState);
-  }, [kanji, renderer]);
-
-  const handleStop = useCallback(() => {
-    renderer.stopAnimation();
-    setAnimationState(renderer.getAnimationState());
-  }, [renderer]);
-
   return (
     <div className={`kanjivg-card ${className || ''}`}>
       <div className="kanjivg-kanji-display">
         <KanjiSVG
           kanji={kanji}
           options={animationOptions}
-          onAnimationStateChange={setAnimationState}
         />
       </div>
-
-      {showControls && (
-        <KanjiAnimationControls
-          animationState={animationState}
-          onStart={handleStart}
-          onPause={handlePause}
-          onResume={handleResume}
-          onStop={handleStop}
-        />
-      )}
 
       {showInfo && (
         <div className="kanjivg-info">
@@ -240,33 +120,11 @@ export const useKanjiVG = (kanji: KanjiInfo, options: StrokeOrderOptions = {}) =
     progress: 0
   });
 
-  const startAnimation = useCallback(() => {
-    renderer.startAnimation(kanji, setAnimationState);
-  }, [kanji, renderer]);
-
-  const pauseAnimation = useCallback(() => {
-    renderer.pauseAnimation();
-    setAnimationState(renderer.getAnimationState());
-  }, [renderer]);
-
-  const resumeAnimation = useCallback(() => {
-    renderer.resumeAnimation(kanji, setAnimationState);
-  }, [kanji, renderer]);
-
-  const stopAnimation = useCallback(() => {
-    renderer.stopAnimation();
-    setAnimationState(renderer.getAnimationState());
-  }, [renderer]);
-
   const svgContent = renderer.render(kanji, options);
 
   return {
     svgContent,
-    animationState,
-    startAnimation,
-    pauseAnimation,
-    resumeAnimation,
-    stopAnimation
+    animationState
   };
 };
 

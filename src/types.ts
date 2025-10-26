@@ -154,27 +154,11 @@ export interface KanjiSVGProps {
   style?: React.CSSProperties;
 }
 
-export interface KanjiAnimationControlsProps {
-  /** Animation state */
-  animationState: AnimationState;
-  /** Callbacks for control actions */
-  onStart: () => void;
-  onPause: () => void;
-  onResume: () => void;
-  onStop: () => void;
-  /** Custom CSS class */
-  className?: string;
-  /** Show progress bar */
-  showProgress?: boolean;
-}
-
 export interface KanjiCardProps {
   /** Kanji information to display */
   kanji: KanjiInfo;
   /** Animation options */
   animationOptions?: StrokeOrderOptions;
-  /** Whether to show animation controls */
-  showControls?: boolean;
   /** Whether to show kanji information */
   showInfo?: boolean;
   /** Custom CSS class */
