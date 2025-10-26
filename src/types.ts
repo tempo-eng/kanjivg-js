@@ -63,6 +63,29 @@ export interface KanjiData {
   index: Record<string, string[]>;
 }
 
+export interface StrokeStyling {
+  /** Stroke color - string for all strokes, array to cycle through colors */
+  strokeColour: string | string[];
+  /** Stroke thickness in pixels */
+  strokeThickness: number;
+  /** Stroke radius for rounded line caps and joins */
+  strokeRadius: number;
+}
+
+export interface RadicalStyling {
+  /** Radical color - string for all radicals, array to cycle through colors */
+  radicalColour: string | string[];
+}
+
+export interface TraceStyling {
+  /** Trace outline color */
+  traceColour: string;
+  /** Trace thickness in pixels */
+  traceThickness: number;
+  /** Trace radius for rounded line caps and joins */
+  traceRadius: number;
+}
+
 export interface StrokeOrderOptions {
   /** Duration of each stroke in milliseconds */
   strokeDuration?: number;
@@ -74,6 +97,12 @@ export interface StrokeOrderOptions {
   flashNumbers?: boolean;
   /** Whether to show a light grey trace outline of the kanji */
   showTrace?: boolean;
+  /** Stroke styling options */
+  strokeStyling?: StrokeStyling;
+  /** Radical styling options (overrides stroke colors) */
+  radicalStyling?: RadicalStyling;
+  /** Trace styling options */
+  traceStyling?: TraceStyling;
   /** Whether to loop the animation */
   loop?: boolean;
   /** Custom CSS class for styling */

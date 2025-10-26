@@ -19,7 +19,7 @@ export class DataLoader {
   private lookupIndex: LookupIndex | null = null;
   private maxCacheSize: number;
 
-  constructor(baseUrl: string = '', maxCacheSize: number = 100) {
+  constructor(baseUrl: string = '', maxCacheSize: number = 50) {
     this.baseUrl = baseUrl;
     this.maxCacheSize = maxCacheSize;
   }

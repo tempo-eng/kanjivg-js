@@ -19,7 +19,7 @@ export class KanjiVG {
   static async createIndividual(
     lookupIndexUrl: string, 
     individualBaseUrl?: string, 
-    maxCacheSize: number = 100
+    maxCacheSize: number = 50
   ): Promise<KanjiVG> {
     const loader = new DataLoader(individualBaseUrl || '', maxCacheSize);
     const data = await loader.loadIndividualKanjiData(lookupIndexUrl, individualBaseUrl);
@@ -166,7 +166,7 @@ export class KanjiVG {
       components.push({
         element: group.element,
         position: group.position,
-        isRadical: group.radicalForm || false,
+        isRadical: !!(group.radicalForm || group.radical),
         radicalNumber: group.radical,
         isTraditional: group.tradForm || false,
         isVariant: group.variant || false
@@ -313,6 +313,23 @@ export class KanjiVG {
    */
   setMaxCacheSize(size: number): void {
     this.loader?.setMaxCacheSize(size);
+  }
+
+  /**
+   * Get a random kanji from the database
+   */
+  async getRandom(): Promise<KanjiInfo | null> {
+    const allCharacters = this.getAllCharacters();
+    if (allCharacters.length === 0) {
+      return null;
+    }
+    
+    const randomIndex = Math.floor(Math.random() * allCharacters.length);
+    const randomCharacter = allCharacters[randomIndex];
+    
+    // Get the first variant of the random character
+    const variants = await this.search(randomCharacter, { limit: 1 });
+    return variants.length > 0 ? variants[0] : null;
   }
 
   /**

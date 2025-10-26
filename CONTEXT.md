@@ -3,7 +3,34 @@
 ## Project Overview
 This is a TypeScript/JavaScript library that provides kanji lookup with SVG stroke order, extracts stroke order/radicals/component data, implements SVG rendering and animation, and adds integration helpers for React/Next.js.
 
-## Core Requirements & Rules
+## Project Purpose & Scope
+
+### Target Use Case
+- **Primary Purpose**: Adding animated kanji components into web applications
+- **Supported Platforms**: React, Next.js, TypeScript, and JavaScript projects only
+- **Not Supported**: Other application types (mobile apps, desktop apps, etc.)
+
+### What This Project Provides
+1. **KanjiCard Component**: A React component for creating animated kanji displays
+2. **Search & Retrieval Functions**: 
+   - Search kanji by character (e.g., '金')
+   - Search kanji by character code (e.g., '04e26')
+3. **Rich Data Information**:
+   - Stroke counts and stroke types
+   - Character variants
+   - Radical information
+4. **Backend Features**:
+   - Caching system (default: 50 results)
+   - Configurable cache size (user can set higher or lower)
+
+### Core Requirements & Rules
+
+### What We Care About (Priority Requirements)
+1. **Data Bundling**: Data must be bundled into the package so users don't have to load their own data
+2. **Framework Compatibility**: Package must work with typical React, Next.js, TypeScript, and JavaScript projects
+3. **Node.js Compatibility**: Package must operate with Node.js (without DOM) but is expected to run in React-type apps
+4. **Lightweight Package**: Package must be as light as possible
+5. **Memory Efficiency**: Package must not cause memory issues by unnecessarily loading all kanji characters into memory
 
 ### Requirement 1: Bundled Package Must Include Compiled Files
 - **Rule**: The bundled package must include ALL compiled files and data
@@ -20,17 +47,18 @@ This is a TypeScript/JavaScript library that provides kanji lookup with SVG stro
 - **Bundled Data**: Single JSON file with all kanji (~75MB)
 
 ### Memory Management
-- **LRU Cache**: Least Recently Used cache with configurable max size (default: 100 kanji)
-- **Memory Usage**: ~540KB max cache (vs 79MB for full dataset)
+- **LRU Cache**: Least Recently Used cache with configurable max size (default: 50 kanji)
+- **Memory Usage**: ~270KB max cache (vs 79MB for full dataset)
 - **On-demand Loading**: Each kanji loaded only when requested
+- **Configurable**: Users can set cache size higher or lower based on their needs
 
 ### Build System
+- **Package Manager**: This project uses **yarn** - always use `yarn` commands instead of `npm`
+  - Use `yarn test` instead of `npm test`
+  - Use `yarn add` instead of `npm install`
+  - Use `yarn build` instead of `npm run build`
 - **Rollup**: Bundles TypeScript to JavaScript
-- **Multiple Outputs**: 
-  - `/bundled`: Complete library with all data included
-  - `/browser`: Browser-only version (requires external data)
-  - `/core`: Core functionality without React
-  - `/react`: Full library with React components
+- **Single Output**: One focused package for React/web applications with all data included
 
 ## Current Implementation Status
 
@@ -72,21 +100,11 @@ kanjivg_js/
 
 ## Usage Patterns
 
-### Bundled Version (Recommended)
+### Main Package (Recommended)
 ```typescript
-import { createKanjiVG } from '@kanjivg/js/bundled';
-const kanjivg = await createKanjiVG(100); // Max cache size
+import { KanjiCard, createKanjiVG } from 'kanjivg-js';
+const kanjivg = await createKanjiVG(50); // Max cache size (default: 50)
 const kanji = await kanjivg.lookup('金');
-```
-
-### Individual File Loading (Advanced)
-```typescript
-import { KanjiVG } from '@kanjivg/js';
-const kanjivg = await KanjiVG.createIndividual(
-  './data/lookup-index.json',
-  './data',
-  100
-);
 ```
 
 ## Notes for Future Development

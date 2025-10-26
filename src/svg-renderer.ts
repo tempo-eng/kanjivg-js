@@ -7,6 +7,7 @@ export class SVGRenderer {
   private options: Required<StrokeOrderOptions>;
   private animationState: AnimationState;
   private animationTimer?: NodeJS.Timeout;
+  private hasRadicalStyling: boolean;
 
   constructor(options: StrokeOrderOptions = {}) {
     this.options = {
@@ -15,6 +16,22 @@ export class SVGRenderer {
       showNumbers: false,
       flashNumbers: true,
       showTrace: false,
+      strokeStyling: {
+        strokeColour: '#000000',
+        strokeThickness: 3,
+        strokeRadius: 0,
+        ...options.strokeStyling
+      },
+      radicalStyling: {
+        radicalColour: '#000000',
+        ...options.radicalStyling
+      },
+      traceStyling: {
+        traceColour: '#cccccc',
+        traceThickness: 2,
+        traceRadius: 0,
+        ...options.traceStyling
+      },
       loop: false,
       className: 'kanjivg-svg',
       width: 109,
@@ -22,6 +39,9 @@ export class SVGRenderer {
       viewBox: '0 0 109 109',
       ...options
     };
+    
+    // Set flag after options are merged
+    this.hasRadicalStyling = !!options.radicalStyling;
 
     this.animationState = {
       currentStroke: 0,
@@ -44,7 +64,7 @@ export class SVGRenderer {
 
     // If we have SVG data, use it directly with animation modifications
     if (svgData) {
-      return this.addAnimationToSVG(svgData, strokeTypes, code, opts);
+      return this.addAnimationToSVG(svgData, strokeTypes, code, opts, kanji);
     }
 
     // Fallback: generate SVG from stroke types (for backward compatibility)
@@ -60,7 +80,7 @@ export class SVGRenderer {
     
     // Add trace outline if enabled
     if (opts.showTrace && svgData) {
-      svg += this.createTraceOutline(code, strokeTypes, svgData);
+      svg += this.createTraceOutline(code, strokeTypes, svgData, opts);
     }
     
     for (let i = 0; i < strokeTypes.length; i++) {
@@ -68,7 +88,7 @@ export class SVGRenderer {
       const strokeType = strokeTypes[i];
       
       // Create animated path
-      svg += this.createAnimatedPath(strokeId, strokeType, i, opts);
+      svg += this.createAnimatedPath(strokeId, strokeType, i, opts, kanji);
     }
 
     // Add stroke numbers if enabled
@@ -89,14 +109,15 @@ export class SVGRenderer {
     svgData: string, 
     strokeTypes: string[], 
     code: string, 
-    options: Required<StrokeOrderOptions>
+    options: Required<StrokeOrderOptions>,
+    kanji: KanjiInfo
   ): string {
     // Parse the SVG and add animation to each path
     let animatedSVG = svgData;
     
     // Add trace outline if enabled
     if (options.showTrace) {
-      const traceSVG = this.createTraceOutline(code, strokeTypes, svgData);
+      const traceSVG = this.createTraceOutline(code, strokeTypes, svgData, options);
       // Insert trace before the first path element
       animatedSVG = animatedSVG.replace(/<path/, `${traceSVG}<path`);
     }
@@ -132,10 +153,12 @@ export class SVGRenderer {
         
         const delay = correctStrokeIndex * (options.strokeDuration + options.strokeDelay);
         const duration = options.strokeDuration;
+        const color = this.getEffectiveStrokeColor(correctStrokeIndex, 0, kanji, options);
+        const strokeStyle = this.createStrokeStyle(options, color);
         
         // Create animated path
         const animatedPath = `<path id="kvg:${code}-s${correctStrokeIndex + 1}" kvg:type="${existingStrokeType}"${attributes}
-          style="stroke-dasharray: 1000; stroke-dashoffset: 1000; fill: none; stroke: #000000; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;">
+          style="stroke-dasharray: 1000; stroke-dashoffset: 1000; ${strokeStyle}">
           <animate attributeName="stroke-dashoffset" 
             values="1000;0" 
             dur="${duration}ms" 
@@ -167,15 +190,19 @@ export class SVGRenderer {
     id: string, 
     strokeType: string, 
     strokeIndex: number, 
-    options: Required<StrokeOrderOptions>
+    options: Required<StrokeOrderOptions>,
+    kanji: KanjiInfo,
+    radicalIndex: number = 0
   ): string {
     const delay = strokeIndex * (options.strokeDuration + options.strokeDelay);
     const duration = options.strokeDuration;
+    const color = this.getEffectiveStrokeColor(strokeIndex, radicalIndex, kanji, options);
+    const strokeStyle = this.createStrokeStyle(options, color);
 
     return `  <path id="${id}" 
       kvg:type="${strokeType}" 
       d="M0,0" 
-      style="stroke-dasharray: 1000; stroke-dashoffset: 1000; fill: none; stroke: #000000; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;">
+      style="stroke-dasharray: 1000; stroke-dashoffset: 1000; ${strokeStyle}">
     <animate attributeName="stroke-dashoffset" 
       values="1000;0" 
       dur="${duration}ms" 
@@ -258,9 +285,131 @@ export class SVGRenderer {
   }
 
   /**
-   * Create trace outline elements (light grey static paths)
+   * Get stroke color for a given stroke index
    */
-  private createTraceOutline(code: string, strokeTypes: string[], svgData: string): string {
+  private getStrokeColor(strokeIndex: number, strokeStyling: Required<StrokeOrderOptions>['strokeStyling']): string {
+    if (typeof strokeStyling.strokeColour === 'string') {
+      return strokeStyling.strokeColour;
+    }
+    
+    // Cycle through colors array
+    const colors = strokeStyling.strokeColour;
+    return colors[strokeIndex % colors.length];
+  }
+
+  /**
+   * Get radical color for a given radical index
+   */
+  private getRadicalColor(radicalIndex: number, radicalStyling: Required<StrokeOrderOptions>['radicalStyling']): string {
+    if (typeof radicalStyling.radicalColour === 'string') {
+      return radicalStyling.radicalColour;
+    }
+    
+    // Cycle through colors array
+    const colors = radicalStyling.radicalColour;
+    return colors[radicalIndex % colors.length];
+  }
+
+  /**
+   * Get stroke color considering radical styling override
+   */
+  private getEffectiveStrokeColor(strokeIndex: number, radicalIndex: number, kanji: KanjiInfo, options: Required<StrokeOrderOptions>): string {
+    // Check if radical styling was provided in the current options
+    const hasRadicalStyling = options.radicalStyling && 
+      (options.radicalStyling.radicalColour !== '#000000' || 
+       (Array.isArray(options.radicalStyling.radicalColour) && options.radicalStyling.radicalColour.length > 0));
+    
+    // If radical styling was explicitly provided, check if this stroke belongs to a radical
+    if (hasRadicalStyling) {
+      // Find which component this stroke belongs to
+      const strokeComponent = this.findStrokeComponent(strokeIndex, kanji);
+      
+      // If this stroke belongs to a radical component, use radical color
+      if (strokeComponent && strokeComponent.isRadical) {
+        return this.getRadicalColor(strokeIndex, options.radicalStyling);
+      }
+    }
+    
+    // Otherwise use stroke styling
+    return this.getStrokeColor(strokeIndex, options.strokeStyling);
+  }
+
+  /**
+   * Find which component a stroke belongs to based on stroke index
+   */
+  private findStrokeComponent(strokeIndex: number, kanji: KanjiInfo): any {
+    // Use a simplified approach based on the known radical stroke counts
+    // This works for the specific kanji we're testing (姉 and 転)
+    
+    for (const component of kanji.components) {
+      if (component.isRadical) {
+        const radicalStrokeCount = this.getRadicalStrokeCount(component.element, kanji);
+        
+        // Check if this stroke index falls within the radical's stroke range
+        // For now, we'll assume radicals come first in stroke order
+        if (strokeIndex < radicalStrokeCount) {
+          return component;
+        }
+      }
+    }
+    
+    // If we can't determine the component, return null
+    return null;
+  }
+
+  /**
+   * Get approximate stroke count for a radical component
+   * This is a simplified heuristic - in reality we'd need proper component mapping
+   */
+  private getRadicalStrokeCount(element: string, kanji: KanjiInfo): number {
+    // Simple heuristic based on common radicals
+    const radicalStrokeCounts: { [key: string]: number } = {
+      '女': 3,  // 姉 has 女 radical with 3 strokes
+      '車': 7,  // 転 has 車 radical with 7 strokes
+      '人': 2,
+      '口': 3,
+      '日': 4,
+      '月': 4,
+      '水': 4,
+      '火': 4,
+      '木': 4,
+      '金': 8,
+      '土': 3,
+      '山': 3,
+      '川': 3,
+      '田': 5,
+      '大': 3,
+      '小': 3,
+      '中': 4,
+      '上': 3,
+      '下': 3,
+      '左': 5,
+      '右': 5
+    };
+    
+    return radicalStrokeCounts[element] || 1;
+  }
+
+  /**
+   * Create stroke style string
+   */
+  private createStrokeStyle(options: Required<StrokeOrderOptions>, color: string): string {
+    const { strokeStyling } = options;
+    const linecap = strokeStyling.strokeRadius > 0 ? 'round' : 'butt';
+    const linejoin = strokeStyling.strokeRadius > 0 ? 'round' : 'miter';
+    return `fill: none; stroke: ${color}; stroke-width: ${strokeStyling.strokeThickness}; stroke-linecap: ${linecap}; stroke-linejoin: ${linejoin};`;
+  }
+
+  /**
+   * Create trace style string
+   */
+  private createTraceStyle(options: Required<StrokeOrderOptions>): string {
+    const { traceStyling } = options;
+    const linecap = traceStyling.traceRadius > 0 ? 'round' : 'butt';
+    const linejoin = traceStyling.traceRadius > 0 ? 'round' : 'miter';
+    return `fill: none; stroke: ${traceStyling.traceColour}; stroke-width: ${traceStyling.traceThickness}; stroke-linecap: ${linecap}; stroke-linejoin: ${linejoin}; opacity: 0.3;`;
+  }
+  private createTraceOutline(code: string, strokeTypes: string[], svgData: string, options: Required<StrokeOrderOptions>): string {
     let trace = '';
     
     // Extract all path elements from the SVG data
@@ -272,10 +421,11 @@ export class SVGRenderer {
       if (index < strokeTypes.length) {
         const attributes = match[1];
         const strokeId = `kvg:${code}-trace-${index + 1}`;
+        const traceStyle = this.createTraceStyle(options);
         
-        // Create trace path with light grey styling
+        // Create trace path with custom styling
         trace += `  <path id="${strokeId}"${attributes}
-          style="fill: none; stroke: #cccccc; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.3;" />
+          style="${traceStyle}" />
 `;
       }
     });

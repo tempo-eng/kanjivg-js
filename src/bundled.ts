@@ -51,7 +51,7 @@ class BundledDataLoader {
   private cache: Map<string, CacheEntry> = new Map();
   private maxCacheSize: number;
 
-  constructor(maxCacheSize: number = 100) {
+  constructor(maxCacheSize: number = 50) {
     this.bundledData = bundledData as unknown as KanjiData;
     this.maxCacheSize = maxCacheSize;
   }
@@ -155,13 +155,13 @@ class BundledDataLoader {
 }
 
 // Factory function for easy initialization
-export async function createKanjiVG(maxCacheSize: number = 100): Promise<KanjiVG> {
+export async function createKanjiVG(maxCacheSize: number = 50): Promise<KanjiVG> {
   const loader = new BundledDataLoader(maxCacheSize);
   const data = await loader.loadIndividualKanjiData();
   return new KanjiVG(data, loader as any);
 }
 
 // Legacy compatibility function
-export async function getKanjiVG(maxCacheSize: number = 100): Promise<KanjiVG> {
+export async function getKanjiVG(maxCacheSize: number = 50): Promise<KanjiVG> {
   return createKanjiVG(maxCacheSize);
 }

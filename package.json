@@ -1,5 +1,5 @@
 {
-  "name": "@kanjivg/js",
+  "name": "kanjivg-js",
   "version": "1.0.0",
   "description": "TypeScript/JavaScript library for KanjiVG with stroke order animation and React integration",
   "type": "module",
@@ -11,33 +11,11 @@
       "import": "./dist/index.esm.js",
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
-    },
-    "./core": {
-      "import": "./dist/core.esm.js",
-      "require": "./dist/core.js",
-      "types": "./dist/core.d.ts"
-    },
-    "./browser": {
-      "import": "./dist/browser.esm.js",
-      "require": "./dist/browser.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./bundled": {
-      "import": "./dist/bundled.esm.js",
-      "require": "./dist/bundled.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./react": {
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
     }
   },
   "files": [
     "dist",
     "data",
-    "examples",
-    "data-generation",
     "README.md"
   ],
   "scripts": {
@@ -89,8 +67,5 @@
     "ts-jest": "^29.1.1",
     "tslib": "^2.6.2",
     "typescript": "^5.2.2"
-  },
-  "dependencies": {
-    "react": "^19.2.0"
   }
 }

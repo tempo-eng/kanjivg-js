@@ -16,9 +16,9 @@ This package is forked from [kanjiVG](https://github.com/KanjiVG/kanjivg), a pyt
 ## Installation
 
 ```bash
-npm install @kanjivg/js
+npm install kanjivg-js
 or
-yarn add @kanjivg/js
+yarn add kanjivg-js
 ```
 
 **Library Requirements:**
@@ -73,7 +73,7 @@ The interactive demo is included in the `examples/` directory.
 
 
 ```typescript
-import { getKanjiVG, createKanjiVG } from '@kanjivg/js';
+import { getKanjiVG, createKanjiVG } from 'kanjivg-js';
 
 // Async initialization (works in both browser and Node.js)
 const kanjivg = await getKanjiVG();
@@ -91,10 +91,322 @@ results.forEach(result => {
 });
 ```
 
+## API Reference
+
+### Core Functions
+
+#### **Lookup & Search**
+
+**`kanjivg.lookup(input, options?)`**
+- **Purpose**: Look up a single kanji by character, Unicode code, or variant key
+- **Parameters**: 
+  - `input`: `string | number` - Character (e.g., '金'), hex code (e.g., '04e26'), or variant key
+  - `options`: `LookupOptions` - Optional lookup configuration
+- **Returns**: `Promise<KanjiInfo | null>` - Single kanji information or null if not found
+- **Example**: `const kanji = await kanjivg.lookup('金');`
+
+**`kanjivg.search(character, options?)`**
+- **Purpose**: Search for all variants of a character
+- **Parameters**:
+  - `character`: `string` - Single kanji character
+  - `options`: `LookupOptions` - Optional search configuration (e.g., `{ limit: 5 }`)
+- **Returns**: `Promise<KanjiInfo[]>` - Array of all variants found
+- **Example**: `const variants = await kanjivg.search('金');`
+
+**`kanjivg.getRandom()`**
+- **Purpose**: Get a random kanji from the database
+- **Returns**: `Promise<KanjiInfo | null>` - Random kanji information or null if database is empty
+- **Example**: `const randomKanji = await kanjivg.getRandom();`
+
+#### **Data & Statistics**
+
+**`kanjivg.getAllCharacters()`**
+- **Purpose**: Get all available kanji characters in the database
+- **Returns**: `string[]` - Array of all kanji characters
+- **Example**: `const allChars = kanjivg.getAllCharacters();`
+
+**`kanjivg.getTotalCount()`**
+- **Purpose**: Get total number of kanji in the database
+- **Returns**: `number` - Total count of kanji
+- **Example**: `const total = kanjivg.getTotalCount(); // Returns 11661`
+
+#### **Cache Management**
+
+**`kanjivg.getCacheSize()`**
+- **Purpose**: Get current number of cached kanji
+- **Returns**: `number` - Current cache size
+- **Example**: `const size = kanjivg.getCacheSize();`
+
+**`kanjivg.getCacheMemoryUsage()`**
+- **Purpose**: Get estimated memory usage of cached kanji
+- **Returns**: `number` - Memory usage in KB (~5.4KB per kanji)
+- **Example**: `const memory = kanjivg.getCacheMemoryUsage();`
+
+**`kanjivg.getCacheStats()`**
+- **Purpose**: Get comprehensive cache statistics
+- **Returns**: `{ currentSize: number, maxSize: number, memoryUsage: number }`
+- **Example**: `const stats = kanjivg.getCacheStats();`
+
+**`kanjivg.clearCache()`**
+- **Purpose**: Clear all cached kanji from memory
+- **Returns**: `void`
+- **Example**: `kanjivg.clearCache();`
+
+**`kanjivg.getMaxCacheSize()`**
+- **Purpose**: Get maximum cache size limit
+- **Returns**: `number` - Maximum cache size
+- **Example**: `const maxSize = kanjivg.getMaxCacheSize();`
+
+**`kanjivg.setMaxCacheSize(size)`**
+- **Purpose**: Set maximum cache size limit
+- **Parameters**: `size: number` - New maximum cache size
+- **Returns**: `void`
+- **Example**: `kanjivg.setMaxCacheSize(100);`
+
+### Factory Functions
+
+**`createKanjiVG(maxCacheSize?)`**
+- **Purpose**: Create KanjiVG instance with bundled data
+- **Parameters**: `maxCacheSize?: number` - Optional cache size (default: 50)
+- **Returns**: `Promise<KanjiVG>` - New KanjiVG instance
+- **Example**: `const kanjivg = await createKanjiVG(100);`
+
+**`getKanjiVG(maxCacheSize?)`**
+- **Purpose**: Legacy compatibility function (same as createKanjiVG)
+- **Parameters**: `maxCacheSize?: number` - Optional cache size (default: 50)
+- **Returns**: `Promise<KanjiVG>` - New KanjiVG instance
+- **Example**: `const kanjivg = await getKanjiVG();`
+
+### Utility Functions
+
+#### **Character & Code Conversion**
+
+**`canonicalId(input)`**
+- **Purpose**: Convert character/hex to canonical ID format
+- **Parameters**: `input: string | number` - Character or hex code
+- **Returns**: `string` - Canonical ID (5-digit hex)
+- **Example**: `const id = canonicalId('金'); // Returns '091d1'`
+
+**`isKanji(char)`**
+- **Purpose**: Check if character is a kanji
+- **Parameters**: `char: string` - Single character
+- **Returns**: `boolean` - True if character is kanji
+- **Example**: `const isKanjiChar = isKanji('金'); // Returns true`
+
+**`getUnicodeCodePoint(char)`**
+- **Purpose**: Get Unicode code point from character
+- **Parameters**: `char: string` - Single character
+- **Returns**: `string` - Unicode code point (5-digit hex)
+- **Example**: `const code = getUnicodeCodePoint('金'); // Returns '091d1'`
+
+**`getCharacterFromCodePoint(code)`**
+- **Purpose**: Get character from Unicode code point
+- **Parameters**: `code: string` - Unicode code point
+- **Returns**: `string` - Character
+- **Example**: `const char = getCharacterFromCodePoint('091d1'); // Returns '金'`
+
+**`formatUnicodeCodePoint(code)`**
+- **Purpose**: Format code point for display
+- **Parameters**: `code: string` - Unicode code point
+- **Returns**: `string` - Formatted code point (U+XXXXX)
+- **Example**: `const formatted = formatUnicodeCodePoint('091d1'); // Returns 'U+091D1'`
+
+#### **Kanji Information Extractors**
+
+**`getStrokeCount(kanji)`**
+- **Purpose**: Get stroke count from kanji info
+- **Parameters**: `kanji: KanjiInfo` - Kanji information object
+- **Returns**: `number` - Number of strokes
+- **Example**: `const strokes = getStrokeCount(kanji);`
+
+**`getStrokeTypes(kanji)`**
+- **Purpose**: Get all stroke types from kanji info
+- **Parameters**: `kanji: KanjiInfo` - Kanji information object
+- **Returns**: `string[]` - Array of stroke types
+- **Example**: `const types = getStrokeTypes(kanji);`
+
+**`getRadicals(kanji)`**
+- **Purpose**: Get all radicals from kanji info
+- **Parameters**: `kanji: KanjiInfo` - Kanji information object
+- **Returns**: `ComponentInfo[]` - Array of radical components
+- **Example**: `const radicals = getRadicals(kanji);`
+
+**`getComponents(kanji)`**
+- **Purpose**: Get all components from kanji info
+- **Parameters**: `kanji: KanjiInfo` - Kanji information object
+- **Returns**: `ComponentInfo[]` - Array of all components
+- **Example**: `const components = getComponents(kanji);`
+
+**`isRadical(component)`**
+- **Purpose**: Check if component is a radical
+- **Parameters**: `component: ComponentInfo` - Component information
+- **Returns**: `boolean` - True if component is a radical
+- **Example**: `const isRadicalComp = isRadical(component);`
+
+**`getComponentsByPosition(kanji, position)`**
+- **Purpose**: Get components by position
+- **Parameters**: 
+  - `kanji: KanjiInfo` - Kanji information object
+  - `position: string` - Position (e.g., 'left', 'right', 'top', 'bottom')
+- **Returns**: `ComponentInfo[]` - Array of components at specified position
+- **Example**: `const leftComponents = getComponentsByPosition(kanji, 'left');`
+
+**`getComponentsByElement(kanji, element)`**
+- **Purpose**: Get components by element
+- **Parameters**:
+  - `kanji: KanjiInfo` - Kanji information object
+  - `element: string` - Element name (e.g., '女', '車')
+- **Returns**: `ComponentInfo[]` - Array of components with specified element
+- **Example**: `const womanComponents = getComponentsByElement(kanji, '女');`
+
+#### **Search & Filter Functions**
+
+**`searchByStrokeCount(kanjiList, strokeCount)`**
+- **Purpose**: Filter kanji by stroke count
+- **Parameters**:
+  - `kanjiList: KanjiInfo[]` - Array of kanji to filter
+  - `strokeCount: number` - Target stroke count
+- **Returns**: `KanjiInfo[]` - Filtered array
+- **Example**: `const fiveStrokeKanji = searchByStrokeCount(allKanji, 5);`
+
+**`searchByRadical(kanjiList, radical)`**
+- **Purpose**: Filter kanji by radical
+- **Parameters**:
+  - `kanjiList: KanjiInfo[]` - Array of kanji to filter
+  - `radical: string` - Radical character (e.g., '女', '車')
+- **Returns**: `KanjiInfo[]` - Filtered array
+- **Example**: `const womanRadicalKanji = searchByRadical(allKanji, '女');`
+
+**`searchByComponent(kanjiList, component)`**
+- **Purpose**: Filter kanji by component
+- **Parameters**:
+  - `kanjiList: KanjiInfo[]` - Array of kanji to filter
+  - `component: string` - Component character
+- **Returns**: `KanjiInfo[]` - Filtered array
+- **Example**: `const waterComponentKanji = searchByComponent(allKanji, '水');`
+
+**`getRandomKanji(kanjiList)`**
+- **Purpose**: Get random kanji from list
+- **Parameters**: `kanjiList: KanjiInfo[]` - Array of kanji
+- **Returns**: `KanjiInfo | null` - Random kanji or null if list is empty
+- **Example**: `const randomKanji = getRandomKanji(kanjiList);`
+
+#### **Sorting Functions**
+
+**`sortByStrokeCount(kanjiList, ascending?)`**
+- **Purpose**: Sort kanji by stroke count
+- **Parameters**:
+  - `kanjiList: KanjiInfo[]` - Array of kanji to sort
+  - `ascending?: boolean` - Sort order (default: true)
+- **Returns**: `KanjiInfo[]` - Sorted array
+- **Example**: `const sortedByStrokes = sortByStrokeCount(kanjiList, true);`
+
+**`sortByCharacter(kanjiList, ascending?)`**
+- **Purpose**: Sort kanji by character
+- **Parameters**:
+  - `kanjiList: KanjiInfo[]` - Array of kanji to sort
+  - `ascending?: boolean` - Sort order (default: true)
+- **Returns**: `KanjiInfo[]` - Sorted array
+- **Example**: `const sortedByChar = sortByCharacter(kanjiList, true);`
+
+#### **SVG Generation**
+
+**`generateSimpleSVG(kanji, options?)`**
+- **Purpose**: Generate simple SVG without animation
+- **Parameters**:
+  - `kanji: KanjiInfo` - Kanji information object
+  - `options?: object` - SVG options (width, height, viewBox, className)
+- **Returns**: `string` - SVG markup
+- **Example**: `const svg = generateSimpleSVG(kanji, { width: 200, height: 200 });`
+
+**`createDataURL(kanji, options?)`**
+- **Purpose**: Create data URL for SVG
+- **Parameters**:
+  - `kanji: KanjiInfo` - Kanji information object
+  - `options?: object` - SVG options
+- **Returns**: `string` - Data URL
+- **Example**: `const dataUrl = createDataURL(kanji);`
+
+#### **Performance Functions**
+
+**`debounce(func, wait)`**
+- **Purpose**: Debounce function calls for performance
+- **Parameters**:
+  - `func: Function` - Function to debounce
+  - `wait: number` - Wait time in milliseconds
+- **Returns**: `Function` - Debounced function
+- **Example**: `const debouncedSearch = debounce(searchFunction, 300);`
+
+**`throttle(func, limit)`**
+- **Purpose**: Throttle function calls for performance
+- **Parameters**:
+  - `func: Function` - Function to throttle
+  - `limit: number` - Time limit in milliseconds
+- **Returns**: `Function` - Throttled function
+- **Example**: `const throttledUpdate = throttle(updateFunction, 100);`
+
+### React Components
+
+#### **`<KanjiCard>`**
+Complete kanji display with animation and information.
+
+```tsx
+<KanjiCard
+  kanji={kanji}
+  animationOptions={{
+    strokeDuration: 800,
+    strokeDelay: 200,
+    showNumbers: true,
+    flashNumbers: false,
+    showTrace: true,
+    loop: false,
+    strokeStyling: {
+      strokeColour: '#000000',
+      strokeThickness: 3,
+      strokeRadius: 1
+    },
+    radicalStyling: {
+      radicalColour: '#ff0000'
+    },
+    traceStyling: {
+      traceColour: '#cccccc',
+      traceThickness: 2,
+      traceRadius: 0
+    }
+  }}
+  showInfo={true}
+/>
+```
+
+#### **`<KanjiSVG>`**
+Simple SVG rendering component.
+
+```tsx
+<KanjiSVG
+  kanji={kanji}
+  animationOptions={options}
+  autoPlay={false}
+  onAnimationStateChange={(state) => console.log(state)}
+/>
+```
+
+#### **`useKanjiVG()`**
+React hook for KanjiVG instance management.
+
+```tsx
+const {
+  svgContent,
+  startAnimation,
+  pauseAnimation,
+  resumeAnimation,
+  stopAnimation
+} = useKanjiVG(kanji, animationOptions);
+```
+
 **Manual data loading (if you generate your own specific data):**
 
 ```typescript
-import { KanjiVG, DataLoader } from '@kanjivg/js';
+import { KanjiVG, DataLoader } from 'kanjivg-js';
 
 // Only needed if you want to load custom data files
 const loader = new DataLoader();
@@ -115,7 +427,7 @@ console.log(kanji.strokeTypes); // ['㇔', '㇒', '㇐', ...]
 For most applications, use the bundled version that includes all data:
 
 ```typescript
-import { createKanjiVG, KanjiCard } from '@kanjivg/js/bundled';
+import { createKanjiVG, KanjiCard } from 'kanjivg-js';
 
 // Simple initialization - no external files needed!
 const kanjivg = await createKanjiVG(100); // Max cache size (optional)
@@ -154,7 +466,7 @@ kanjivg.clearCache();
 For applications that need custom data loading or want to host their own data:
 
 ```typescript
-import { KanjiVG } from '@kanjivg/js';
+import { KanjiVG } from 'kanjivg-js';
 
 // Async initialization with individual file loading
 const kanjivg = await KanjiVG.createIndividual(
@@ -173,7 +485,7 @@ const kanjivg = await KanjiVG.createIndividual(
 
 ```tsx
 import React from 'react';
-import { KanjiCard, KanjiSVG } from '@kanjivg/js';
+import { KanjiCard, KanjiSVG } from 'kanjivg-js';
 
 function MyComponent() {
   const kanji = kanjivg.lookup('並');
@@ -203,7 +515,7 @@ function MyComponent() {
 
 ```tsx
 import React, { useState } from 'react';
-import { KanjiSVG, KanjiAnimationControls, useKanjiVG } from '@kanjivg/js';
+import { KanjiSVG, KanjiAnimationControls, useKanjiVG } from 'kanjivg-js';
 
 function AnimatedKanji() {
   const [animationState, setAnimationState] = useState(null);
@@ -262,36 +574,10 @@ Complete kanji display with controls and information.
 />
 ```
 
-#### `KanjiAnimationControls`
-
-Control buttons for animation.
-
-```tsx
-<KanjiAnimationControls
-  animationState={state}
-  onStart={start}
-  onPause={pause}
-  onResume={resume}
-  onStop={stop}
-/>
-```
-
 ### Hooks
 
 #### `useKanjiVG`
 
-Custom hook for kanji animation.
-
-```typescript
-const {
-  svgContent,
-  animationState,
-  startAnimation,
-  pauseAnimation,
-  resumeAnimation,
-  stopAnimation
-} = useKanjiVG(kanji, options);
-```
 
 ### Types
 
@@ -317,13 +603,6 @@ interface StrokeOrderOptions {
   viewBox?: string;
 }
 
-interface AnimationState {
-  currentStroke: number;
-  isPlaying: boolean;
-  isPaused: boolean;
-  totalStrokes: number;
-  progress: number;
-}
 ```
 
 ## Styling
@@ -335,9 +614,6 @@ The library includes basic CSS classes for styling:
   /* SVG container styles */
 }
 
-.kanjivg-controls {
-  /* Animation control styles */
-}
 
 .kanjivg-card {
   /* Card container styles */
