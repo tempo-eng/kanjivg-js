@@ -16,8 +16,8 @@ describe('KanjiVG Variant Tests', () => {
   });
 
   describe('Variant Search Functionality', () => {
-    test('should find multiple variants for 且 (moreover)', () => {
-      const results = kanjivg.search('且');
+    test('should find multiple variants for 且 (moreover)', async () => {
+      const results = await await kanjivg.search('且');
       
       expect(results.length).toBeGreaterThanOrEqual(2);
       
@@ -35,8 +35,8 @@ describe('KanjiVG Variant Tests', () => {
       expect(kaishoForm!.code).toBe('04e14');
     });
 
-    test('should have different stroke data for 且 variants', () => {
-      const results = kanjivg.search('且');
+    test('should have different stroke data for 且 variants', async () => {
+      const results = await await kanjivg.search('且');
       const baseForm = results.find(r => !r.variant);
       const kaishoForm = results.find(r => r.variant === 'Kaisho');
       
@@ -53,8 +53,8 @@ describe('KanjiVG Variant Tests', () => {
       expect(kaishoForm!.strokeTypes).toContain('㇕');
     });
 
-    test('should find multiple variants for 碚 (stone)', () => {
-      const results = kanjivg.search('碚');
+    test('should find multiple variants for 碚 (stone)', async () => {
+      const results = await kanjivg.search('碚');
       
       expect(results.length).toBeGreaterThanOrEqual(2);
       
@@ -70,8 +70,8 @@ describe('KanjiVG Variant Tests', () => {
       expect(kaishoForm!.code).toBe('0789a');
     });
 
-    test('should find three variants for 宙 (space/universe)', () => {
-      const results = kanjivg.search('宙');
+    test('should find three variants for 宙 (space/universe)', async () => {
+      const results = await kanjivg.search('宙');
       
       expect(results.length).toBeGreaterThanOrEqual(3);
       
@@ -92,8 +92,8 @@ describe('KanjiVG Variant Tests', () => {
       expect(kaishoVtLstForm!.code).toBe('05b99');
     });
 
-    test('should find three variants for 罩 (cover)', () => {
-      const results = kanjivg.search('罩');
+    test('should find three variants for 罩 (cover)', async () => {
+      const results = await kanjivg.search('罩');
       
       expect(results.length).toBeGreaterThanOrEqual(3);
       
@@ -105,34 +105,34 @@ describe('KanjiVG Variant Tests', () => {
   });
 
   describe('Variant Lookup Functionality', () => {
-    test('should handle lookup by variant key', () => {
-      const result = kanjivg.lookup('04e14-Kaisho');
+    test('should handle lookup by variant key', async () => {
+      const result = await kanjivg.lookup('04e14-Kaisho');
       expect(result).toBeDefined();
       expect(result!.character).toBe('且');
       expect(result!.variant).toBe('Kaisho');
     });
 
-    test('should handle lookup by base key', () => {
-      const result = kanjivg.lookup('04e14');
+    test('should handle lookup by base key', async () => {
+      const result = await kanjivg.lookup('04e14');
       expect(result).toBeDefined();
       expect(result!.character).toBe('且');
       expect(result!.variant).toBeNull();
     });
 
-    test('should handle characters with no variants', () => {
-      const results = kanjivg.search('一');
+    test('should handle characters with no variants', async () => {
+      const results = await kanjivg.search('一');
       expect(results).toHaveLength(1);
       expect(results[0].variant).toBeNull();
     });
   });
 
   describe('Variant Data Validation', () => {
-    test('should have correct total entries', () => {
+    test('should have correct total entries', async () => {
       const totalEntries = Object.keys(realData.kanji).length;
       expect(totalEntries).toBe(11661);
     });
 
-    test('should have correct variant distribution', () => {
+    test('should have correct variant distribution', async () => {
       const allKeys = Object.keys(realData.kanji);
       const variantKeys = allKeys.filter(key => key.includes('-'));
       const baseKeys = allKeys.filter(key => !key.includes('-'));
@@ -141,7 +141,7 @@ describe('KanjiVG Variant Tests', () => {
       expect(baseKeys.length).toBe(6702);
     });
 
-    test('should have characters with multiple variant types', () => {
+    test('should have characters with multiple variant types', async () => {
       const index = realData.index;
       const charactersWithVariants = Object.keys(index).filter(char => 
         index[char].length > 1
@@ -157,25 +157,25 @@ describe('KanjiVG Variant Tests', () => {
   });
 
   describe('Variant Search Edge Cases', () => {
-    test('should respect limit option with variants', () => {
-      const results = kanjivg.search('且', { limit: 1 });
+    test('should respect limit option with variants', async () => {
+      const results = await kanjivg.search('且', { limit: 1 });
       expect(results).toHaveLength(1);
     });
 
-    test('should return empty array for non-existent character', () => {
-      const results = kanjivg.search('nonexistent');
+    test('should return empty array for non-existent character', async () => {
+      const results = await kanjivg.search('nonexistent');
       expect(results).toHaveLength(0);
     });
 
-    test('should have consistent stroke count across variants', () => {
-      const results = kanjivg.search('宙');
+    test('should have consistent stroke count across variants', async () => {
+      const results = await kanjivg.search('宙');
       
       const strokeCounts = results.map(r => r.strokeCount);
       expect(strokeCounts.every(count => count === strokeCounts[0])).toBe(true);
     });
 
-    test('should have different stroke implementations for variants', () => {
-      const results = kanjivg.search('宙');
+    test('should have different stroke implementations for variants', async () => {
+      const results = await kanjivg.search('宙');
       
       // All variants should have different stroke types
       const strokeTypes = results.map(r => r.strokeTypes);

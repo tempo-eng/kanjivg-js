@@ -1,0 +1,25 @@
+{
+  "code": "04e3f",
+  "character": "丿",
+  "variant": null,
+  "strokes": {
+    "id": "",
+    "groups": [],
+    "strokes": [
+      {
+        "type": "㇒",
+        "path": "M54.98,13.75c0.77,2.25,1.87,4.02,1.87,6.83c0,25.67,3.15,62.67-23.04,75.89",
+        "numberPos": null
+      }
+    ],
+    "element": "丿",
+    "radical": "general"
+  },
+  "all_strokes": [
+    {
+      "type": "㇒",
+      "path": "M54.98,13.75c0.77,2.25,1.87,4.02,1.87,6.83c0,25.67,3.15,62.67-23.04,75.89",
+      "numberPos": null
+    }
+  ]
+}

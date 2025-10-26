@@ -11,6 +11,7 @@ This package is forked from [kanjiVG](https://github.com/KanjiVG/kanjivg), a pyt
 - **SVG Rendering**: Render kanji as SVG with customizable styling
 - **Stroke Order Animation**: Animate kanji stroke order with timing controls
 - **React Integration**: Ready-to-use React components and hooks
+- **Memory-Efficient Loading**: Chunked data loading to reduce memory usage
 
 ## Installation
 
@@ -41,7 +42,11 @@ kanjivg_js/
 │   └── utils.ts          # Utility functions
 ├── dist/                  # Built JavaScript files
 ├── data/                  # Pre-generated data files
-│   ├── kanjivg-data.json  # All 11,661 kanji with variants (53MB)
+│   ├── individual/        # Individual kanji files (ultra memory-efficient)
+│   │   ├── 04e00.json    # Individual kanji files (~5KB each)
+│   │   ├── 04e01.json    # 11,661 total files
+│   │   └── ...           # One file per kanji variant
+│   ├── lookup-index.json  # Kanji code -> file path mapping
 │   └── kanjivg-index.json # Character lookup index
 ├── examples/              # Usage examples
 │   └── index.html         # Interactive demo with full dataset
@@ -104,6 +109,65 @@ console.log(kanji.character); // 並
 console.log(kanji.strokeCount); // 8
 console.log(kanji.strokeTypes); // ['㇔', '㇒', '㇐', ...]
 ```
+
+## Bundled Library (Recommended)
+
+For most applications, use the bundled version that includes all data:
+
+```typescript
+import { createKanjiVG, KanjiCard } from '@kanjivg/js/bundled';
+
+// Simple initialization - no external files needed!
+const kanjivg = await createKanjiVG(100); // Max cache size (optional)
+
+// Use the library (methods are async)
+const kanji = await kanjivg.lookup('金');
+const results = await kanjivg.search('語');
+
+console.log(kanji?.character); // 金
+console.log(results.length);   // Number of variants found
+```
+
+**Benefits of Bundled Library:**
+- ✅ **Zero Configuration**: No external files or paths needed
+- ✅ **Memory Efficient**: Only loads ~5KB per kanji with LRU cache
+- ✅ **Perfect for Next.js**: No memory warnings or server restarts
+- ✅ **Instant Startup**: Loads only the lookup index (~500KB)
+- ✅ **On-demand Loading**: Each kanji loaded only when requested
+- ✅ **Cache Management**: Automatic LRU eviction with configurable size
+
+**Cache Management:**
+```typescript
+// Get cache statistics
+const stats = kanjivg.getCacheStats();
+console.log(`Cache: ${stats.currentSize}/${stats.maxSize} kanji (${stats.memoryUsage}KB)`);
+
+// Configure cache size
+kanjivg.setMaxCacheSize(50); // Reduce to 50 kanji (~270KB max)
+
+// Clear cache if needed
+kanjivg.clearCache();
+```
+
+## Individual File Loading (Advanced)
+
+For applications that need custom data loading or want to host their own data:
+
+```typescript
+import { KanjiVG } from '@kanjivg/js';
+
+// Async initialization with individual file loading
+const kanjivg = await KanjiVG.createIndividual(
+  './data/lookup-index.json',  // Lookup index file
+  './data',                    // Data directory (optional)
+  100                          // Max cache size (optional, default: 100)
+);
+```
+
+**File Organization:**
+- `individual/`: 11,661 individual kanji files (~5KB each)
+- `lookup-index.json`: Maps kanji codes to file paths (~500KB)
+- `kanjivg-index.json`: Character to kanji code mapping (~290KB)
 
 ### React Components
 

@@ -246,3 +246,5 @@ export function sortByCharacter(kanjiList: KanjiInfo[], ascending: boolean = tru
     return ascending ? a.character.localeCompare(b.character) : b.character.localeCompare(a.character);
   });
 }
+
+

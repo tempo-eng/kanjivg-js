@@ -89,10 +89,10 @@ def convert_stroke_group(group):
     return js_group
 
 def flatten_all_strokes(group):
-    """Flatten all strokes from a stroke group into a single list"""
+    """Flatten all strokes from a stroke group into a single list in correct order"""
     all_strokes = []
     
-    # Add direct strokes
+    # Process children in order (mimics Python's childs iteration)
     for child in group.childs:
         if hasattr(child, 'childs'):  # It's a StrokeGr
             all_strokes.extend(flatten_all_strokes(child))
@@ -105,6 +105,27 @@ def flatten_all_strokes(group):
     
     return all_strokes
 
+def get_unicode_range(code):
+    """Get Unicode range name for a kanji code"""
+    code_point = int(code, 16)
+    
+    if 0x4E00 <= code_point <= 0x9FFF:
+        return 'basic'
+    elif 0x3400 <= code_point <= 0x4DBF:
+        return 'extended-a'
+    elif 0x20000 <= code_point <= 0x2A6DF:
+        return 'extended-b'
+    elif 0x2A700 <= code_point <= 0x2B73F:
+        return 'extended-c'
+    elif 0x2B740 <= code_point <= 0x2B81F:
+        return 'extended-d'
+    elif 0x2B820 <= code_point <= 0x2CEAF:
+        return 'extended-e'
+    elif 0xF900 <= code_point <= 0xFAFF:
+        return 'compatibility'
+    else:
+        return 'other'
+
 def main():
     """Main conversion function"""
     # Paths
@@ -112,9 +133,11 @@ def main():
     kanji_dir = script_dir / "kanji"
     index_file = script_dir / "kvg-index.json"
     output_dir = script_dir.parent / "data"
+    individual_dir = output_dir / "individual"
     
-    # Create output directory
+    # Create output directories
     output_dir.mkdir(exist_ok=True)
+    individual_dir.mkdir(exist_ok=True)
     
     print("Converting KanjiVG data to JavaScript format...")
     
@@ -141,10 +164,16 @@ def main():
                     "code": kanji.code,
                     "character": chr(int(kanji.code, 16)),
                     "variant": kanji.variant,
-                    "strokes": convert_stroke_group(kanji.strokes)
+                    "strokes": convert_stroke_group(kanji.strokes),
+                    "all_strokes": flatten_all_strokes(kanji.strokes)
                 }
                 variant_key = kanji.kId()
                 kanji_data[variant_key] = js_data
+                
+                # Save individual kanji file
+                individual_file = individual_dir / f"{variant_key}.json"
+                with open(individual_file, 'w', encoding='utf-8') as f:
+                    json.dump(js_data, f, ensure_ascii=False, indent=2)
                 
                 # Add to character index
                 character = chr(int(kanji.code, 16))
@@ -155,30 +184,43 @@ def main():
             print(f"Error processing {sfi.path}: {e}")
             continue
     
-    # Create final data structure
-    data = {
-        "kanji": kanji_data,
-        "index": character_index  # Use new character index instead of old SVG index
-    }
+    # Create lookup index: kanji code -> file path
+    lookup_index = {}
+    for variant_key in kanji_data.keys():
+        lookup_index[variant_key] = f"individual/{variant_key}.json"
     
-    # Save to files
-    print("Saving data files...")
+    # Save lookup index
+    lookup_index_path = output_dir / "lookup-index.json"
+    with open(lookup_index_path, 'w', encoding='utf-8') as f:
+        json.dump(lookup_index, f, ensure_ascii=False, indent=2)
     
-    # Save full data
-    with open(output_dir / "kanjivg-data.json", 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-    
-    # Save index only
+    # Save character index (for backward compatibility)
     with open(output_dir / "kanjivg-index.json", 'w', encoding='utf-8') as f:
         json.dump(character_index, f, ensure_ascii=False, indent=2)
     
-    
-    print(f"Conversion complete!")
+    print(f"\nConversion complete!")
     print(f"Total kanji converted: {len(kanji_data)}")
+    print(f"Individual files created: {len(kanji_data)}")
     print(f"Data saved to: {output_dir}")
     print(f"Files created:")
-    print(f"  - kanjivg-data.json ({len(kanji_data)} kanji)")
-    print(f"  - kanjivg-index.json (index only)")
+    print(f"  - individual/ (directory with {len(kanji_data)} individual kanji files)")
+    print(f"  - lookup-index.json (kanji code -> file path mapping)")
+    print(f"  - kanjivg-index.json (character index)")
+    
+    # Show file size distribution
+    print(f"\nFile size distribution:")
+    total_size = 0
+    for variant_key in list(kanji_data.keys())[:10]:  # Show first 10 as sample
+        individual_file = individual_dir / f"{variant_key}.json"
+        if individual_file.exists():
+            size = individual_file.stat().st_size
+            total_size += size
+            print(f"  {variant_key}.json: {size:,} bytes")
+    
+    if len(kanji_data) > 10:
+        print(f"  ... and {len(kanji_data) - 10} more files")
+    
+    print(f"Average file size: {total_size // min(10, len(kanji_data)):,} bytes")
 
 if __name__ == "__main__":
     main()

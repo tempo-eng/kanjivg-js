@@ -52,6 +52,8 @@ export interface Kanji {
   strokes: StrokeGroup;
   /** Character representation */
   character: string;
+  /** Flattened array of all strokes in correct order */
+  all_strokes?: Stroke[];
 }
 
 export interface KanjiData {

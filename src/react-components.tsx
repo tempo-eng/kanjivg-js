@@ -269,3 +269,4 @@ export const useKanjiVG = (kanji: KanjiInfo, options: StrokeOrderOptions = {}) =
     stopAnimation
   };
 };
+

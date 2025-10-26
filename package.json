@@ -6,6 +6,33 @@
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./core": {
+      "import": "./dist/core.esm.js",
+      "require": "./dist/core.js",
+      "types": "./dist/core.d.ts"
+    },
+    "./browser": {
+      "import": "./dist/browser.esm.js",
+      "require": "./dist/browser.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./bundled": {
+      "import": "./dist/bundled.esm.js",
+      "require": "./dist/bundled.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./react": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "files": [
     "dist",
     "data",
@@ -14,7 +41,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "rollup -c",
+    "build": "node --max-old-space-size=8192 node_modules/.bin/rollup -c",
     "dev": "rollup -c -w",
     "test": "jest",
     "type-check": "tsc --noEmit",
@@ -47,6 +74,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.5",
     "@testing-library/jest-dom": "^6.1.4",

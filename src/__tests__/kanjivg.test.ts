@@ -32,46 +32,46 @@ describe('KanjiVG', () => {
   });
 
   describe('lookup', () => {
-    it('should lookup kanji by character', () => {
-      const result = kanjivg.lookup('並');
+    it('should lookup kanji by character', async () => {
+      const result = await kanjivg.lookup('並');
       expect(result).toBeTruthy();
       expect(result?.character).toBe('並');
       expect(result?.code).toBe('04e26');
       expect(result?.strokeCount).toBe(3);
     });
 
-    it('should lookup kanji by code', () => {
-      const result = kanjivg.lookup('04e26');
+    it('should lookup kanji by code', async () => {
+      const result = await kanjivg.lookup('04e26');
       expect(result).toBeTruthy();
       expect(result?.character).toBe('並');
       expect(result?.code).toBe('04e26');
     });
 
-    it('should return null for non-existent kanji', () => {
-      const result = kanjivg.lookup('nonexistent');
+    it('should return null for non-existent kanji', async () => {
+      const result = await kanjivg.lookup('nonexistent');
       expect(result).toBeNull();
     });
 
-    it('should handle invalid input', () => {
-      const result = kanjivg.lookup('invalid-input');
+    it('should handle invalid input', async () => {
+      const result = await kanjivg.lookup('invalid-input');
       expect(result).toBeNull();
     });
   });
 
   describe('search', () => {
-    it('should search kanji by character', () => {
-      const results = kanjivg.search('並');
+    it('should search kanji by character', async () => {
+      const results = await kanjivg.search('並');
       expect(results).toHaveLength(1);
       expect(results[0].character).toBe('並');
     });
 
-    it('should return empty array for non-existent character', () => {
-      const results = kanjivg.search('nonexistent');
+    it('should return empty array for non-existent character', async () => {
+      const results = await kanjivg.search('nonexistent');
       expect(results).toHaveLength(0);
     });
 
-    it('should respect limit option', () => {
-      const results = kanjivg.search('並', { limit: 1 });
+    it('should respect limit option', async () => {
+      const results = await kanjivg.search('並', { limit: 1 });
       expect(results).toHaveLength(1);
     });
   });
@@ -91,10 +91,10 @@ describe('KanjiVG', () => {
   });
 
   describe('variant search', () => {
-    it('should demonstrate variant search with mock data', () => {
+    it('should demonstrate variant search with mock data', async () => {
       // This test uses the mock data to show the concept
       // Real variant testing is in variant-search.test.ts
-      const results = kanjivg.search('並');
+      const results = await kanjivg.search('並');
       expect(results).toHaveLength(1);
       expect(results[0].character).toBe('並');
     });

@@ -1,13 +1,29 @@
 import { Kanji, KanjiData, KanjiInfo, LookupOptions, ComponentInfo, StrokeGroup, Stroke } from './types';
+import { DataLoader } from './data-loader';
 
 /**
  * Main KanjiVG class for kanji lookup and data extraction
  */
 export class KanjiVG {
   private data: KanjiData;
+  private loader?: DataLoader;
 
-  constructor(data: KanjiData) {
+  constructor(data: KanjiData, loader?: DataLoader) {
     this.data = data;
+    this.loader = loader;
+  }
+
+  /**
+   * Create a KanjiVG instance with individual kanji file loading (most memory-efficient)
+   */
+  static async createIndividual(
+    lookupIndexUrl: string, 
+    individualBaseUrl?: string, 
+    maxCacheSize: number = 100
+  ): Promise<KanjiVG> {
+    const loader = new DataLoader(individualBaseUrl || '', maxCacheSize);
+    const data = await loader.loadIndividualKanjiData(lookupIndexUrl, individualBaseUrl);
+    return new KanjiVG(data, loader);
   }
 
   /**
@@ -100,14 +116,44 @@ export class KanjiVG {
   }
 
   /**
-   * Get all strokes from a stroke group recursively
+   * Get all strokes from a stroke group recursively in correct order
+   * This mimics the Python code's behavior where strokes are processed in DOM order
    */
   private getAllStrokes(group: StrokeGroup): Stroke[] {
-    let strokes = [...group.strokes];
-    for (const childGroup of group.groups) {
-      strokes = strokes.concat(this.getAllStrokes(childGroup));
+    let strokes: Stroke[] = [];
+    
+    // Process children in order (this mimics the Python childs iteration)
+    // We need to flatten the structure while preserving the order
+    const allChildren = this.flattenChildren(group);
+    
+    // Extract only strokes from the flattened children
+    for (const child of allChildren) {
+      if (child.type && child.path) {
+        strokes.push(child);
+      }
     }
+    
     return strokes;
+  }
+
+  /**
+   * Flatten children while preserving the order they appear in the DOM
+   * This mimics the Python code's recursive processing of childs
+   */
+  private flattenChildren(group: StrokeGroup): any[] {
+    const result: any[] = [];
+    
+    // Process direct strokes first
+    for (const stroke of group.strokes) {
+      result.push(stroke);
+    }
+    
+    // Then process child groups recursively
+    for (const childGroup of group.groups) {
+      result.push(...this.flattenChildren(childGroup));
+    }
+    
+    return result;
   }
 
   /**
@@ -137,7 +183,7 @@ export class KanjiVG {
   /**
    * Look up a kanji by character, code, or variant key
    */
-  lookup(input: string | number, options: LookupOptions = {}): KanjiInfo | null {
+  async lookup(input: string | number, options: LookupOptions = {}): Promise<KanjiInfo | null> {
     try {
       let key: string;
       
@@ -149,13 +195,14 @@ export class KanjiVG {
         key = this.canonicalId(input);
       }
       
-      const kanji = this.data.kanji[key];
+      const kanji = await this.data.kanji[key];
       
       if (!kanji) {
         return null;
       }
 
-      const allStrokes = this.getAllStrokes(kanji.strokes);
+      // Get stroke information - use all_strokes if available, otherwise compute it
+      const allStrokes = kanji.all_strokes || this.getAllStrokes(kanji.strokes);
       const components = this.extractComponents(kanji.strokes);
       const radicals = components.filter(c => c.isRadical);
 
@@ -164,7 +211,7 @@ export class KanjiVG {
         code: kanji.code,
         variant: kanji.variant,
         strokeCount: allStrokes.length,
-        strokeTypes: allStrokes.map(s => s.type || ''),
+        strokeTypes: allStrokes.map((s: Stroke) => s.type || ''),
         components,
         radicals,
         svg: this.generateSVG(kanji)
@@ -178,14 +225,14 @@ export class KanjiVG {
   /**
    * Search for kanji by character
    */
-  search(character: string, options: LookupOptions = {}): KanjiInfo[] {
+  async search(character: string, options: LookupOptions = {}): Promise<KanjiInfo[]> {
     const results: KanjiInfo[] = [];
     const variantKeys = this.data.index[character] || [];
     
     for (const variantKey of variantKeys) {
-      const kanji = this.data.kanji[variantKey];
+      const kanji = await this.data.kanji[variantKey];
       if (kanji) {
-        const info = this.lookup(variantKey);
+        const info = await this.lookup(variantKey);
         if (info) {
           results.push(info);
         }
@@ -199,7 +246,8 @@ export class KanjiVG {
    * Generate SVG markup for a kanji
    */
   private generateSVG(kanji: Kanji): string {
-    const allStrokes = this.getAllStrokes(kanji.strokes);
+    // Use the same stroke order as the lookup method
+    const allStrokes = kanji.all_strokes || this.getAllStrokes(kanji.strokes);
     
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="109" height="109" viewBox="0 0 109 109" style="fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;">\n`;
     svg += `<g id="kvg:StrokePaths_${kanji.code}" style="fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;">\n`;
@@ -229,5 +277,57 @@ export class KanjiVG {
    */
   getTotalCount(): number {
     return Object.keys(this.data.kanji).length;
+  }
+
+  /**
+   * Get cache size (number of cached kanji)
+   */
+  getCacheSize(): number {
+    return this.loader?.getCacheSize() || 0;
+  }
+
+  /**
+   * Clear the cache
+   */
+  clearCache(): void {
+    this.loader?.clearCache();
+  }
+
+  /**
+   * Get estimated memory usage of cached kanji
+   */
+  getCacheMemoryUsage(): number {
+    const cacheSize = this.getCacheSize();
+    return cacheSize * 5.4; // ~5.4KB per kanji
+  }
+
+  /**
+   * Get maximum cache size
+   */
+  getMaxCacheSize(): number {
+    return this.loader?.getMaxCacheSize() || 0;
+  }
+
+  /**
+   * Set maximum cache size
+   */
+  setMaxCacheSize(size: number): void {
+    this.loader?.setMaxCacheSize(size);
+  }
+
+  /**
+   * Get cache statistics
+   */
+  getCacheStats(): {
+    currentSize: number;
+    maxSize: number;
+    memoryUsage: number;
+    hitRate?: number;
+  } {
+    return {
+      currentSize: this.getCacheSize(),
+      maxSize: this.getMaxCacheSize(),
+      memoryUsage: this.getCacheMemoryUsage()
+    };
   }
 }

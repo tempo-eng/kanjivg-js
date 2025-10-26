@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KanjiVG Individual File Loading Demo</title>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .kanji-display {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .kanji-character {
+            font-size: 120px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .kanji-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .svg-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .svg-container svg {
+            border: 1px solid #ddd;
+            background: white;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .memory-info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .memory-info h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        .stats {
+            background: #f0f8f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .stats h3 {
+            margin-top: 0;
+            color: #006600;
+        }
+        .file-info {
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 5px;
+            border-radius: 3px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎌 KanjiVG Individual File Loading Demo</h1>
+        
+        <div class="memory-info">
+            <h3>💾 Ultra Memory-Efficient Loading</h3>
+            <p>This demo uses individual kanji file loading - the most memory-efficient approach possible. Each kanji is stored in its own ~5KB file and loaded only when requested.</p>
+            <p><strong>Benefits:</strong> Minimal memory usage (~5KB per kanji), instant startup, perfect for Next.js applications, no memory warnings.</p>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <h3>📊 Loading Statistics</h3>
+            <div id="statsContent"></div>
+        </div>
+
+        <div class="input-group">
+            <label for="kanjiInput">Enter a kanji character or hex code:</label>
+            <input type="text" id="kanjiInput" placeholder="e.g., 金, 語, 04e26" value="金">
+        </div>
+
+        <button id="lookupBtn" onclick="lookupKanji()" disabled>Lookup Kanji</button>
+        <button id="loadBtn" onclick="loadIndividualData()">Load Individual Data</button>
+        <button onclick="clearResults()">Clear</button>
+
+        <div id="result" class="result" style="display: none;">
+            <div class="loading" id="loading">Loading...</div>
+            <div id="kanjiResult"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        let kanjivg = null;
+        let isDataLoaded = false;
+        let loadStats = {
+            startTime: 0,
+            indexLoadTime: 0,
+            totalLookups: 0,
+            totalLoadTime: 0
+        };
+
+        // Load individual data
+        window.loadIndividualData = async function() {
+            const loadBtn = document.getElementById('loadBtn');
+            const loading = document.getElementById('loading');
+            const stats = document.getElementById('stats');
+            const statsContent = document.getElementById('statsContent');
+            
+            loadBtn.disabled = true;
+            loading.textContent = 'Loading lookup index...';
+            loadStats.startTime = performance.now();
+            
+            try {
+                // Import the individual KanjiVG
+                const { KanjiVG } = await import('./dist/browser.esm.js');
+                
+                loading.textContent = 'Initializing individual file loader...';
+                kanjivg = await KanjiVG.createIndividual('./data/lookup-index.json', './data');
+                
+                loadStats.indexLoadTime = performance.now() - loadStats.startTime;
+                isDataLoaded = true;
+                loadBtn.textContent = '✅ Data Loaded';
+                loadBtn.style.background = '#28a745';
+                
+                loading.textContent = 'Individual file loader ready! Only ~5KB per kanji loaded on-demand.';
+                
+                // Show stats
+                stats.style.display = 'block';
+                statsContent.innerHTML = `
+                    <div class="file-info">Index load time: ${loadStats.indexLoadTime.toFixed(2)}ms</div>
+                    <div class="file-info">Memory usage: ~5KB per kanji (vs 79MB for full dataset)</div>
+                    <div class="file-info">Total kanji available: 11,661 individual files</div>
+                `;
+                
+                // Enable lookup button
+                document.getElementById('lookupBtn').disabled = false;
+                
+            } catch (error) {
+                console.error('Error loading individual data:', error);
+                loading.innerHTML = `<div class="error">Error loading data: ${error.message}</div>`;
+                loadBtn.disabled = false;
+            }
+        };
+
+        // Lookup kanji
+        window.lookupKanji = async function() {
+            if (!isDataLoaded) {
+                alert('Please load the individual data first!');
+                return;
+            }
+
+            const input = document.getElementById('kanjiInput').value.trim();
+            if (!input) {
+                alert('Please enter a kanji character or hex code');
+                return;
+            }
+
+            const resultDiv = document.getElementById('result');
+            const kanjiResult = document.getElementById('kanjiResult');
+            const loading = document.getElementById('loading');
+            const statsContent = document.getElementById('statsContent');
+            
+            resultDiv.style.display = 'block';
+            kanjiResult.innerHTML = '';
+            loading.textContent = 'Looking up kanji...';
+
+            const lookupStartTime = performance.now();
+
+            try {
+                const kanjiInfo = await kanjivg.lookup(input);
+                
+                const lookupTime = performance.now() - lookupStartTime;
+                loadStats.totalLookups++;
+                loadStats.totalLoadTime += lookupTime;
+                
+                if (!kanjiInfo) {
+                    kanjiResult.innerHTML = '<div class="error">Kanji not found. Please try a different character or hex code.</div>';
+                    return;
+                }
+
+                // Display kanji information
+                kanjiResult.innerHTML = `
+                    <div class="kanji-display">
+                        <div class="kanji-character">${kanjiInfo.character}</div>
+                        <div class="kanji-info">
+                            <strong>Code:</strong> ${kanjiInfo.code} | 
+                            <strong>Strokes:</strong> ${kanjiInfo.strokeCount} | 
+                            <strong>Variant:</strong> ${kanjiInfo.variant || 'None'}
+                        </div>
+                        <div class="kanji-info">
+                            <strong>Stroke Types:</strong> ${kanjiInfo.strokeTypes.join(', ')}
+                        </div>
+                        <div class="file-info">Load time: ${lookupTime.toFixed(2)}ms | File size: ~5KB</div>
+                    </div>
+                    <div class="svg-container">
+                        <h3>SVG Rendering:</h3>
+                        ${kanjiInfo.svg}
+                    </div>
+                `;
+                
+                // Update stats
+                const avgLoadTime = loadStats.totalLoadTime / loadStats.totalLookups;
+                statsContent.innerHTML = `
+                    <div class="file-info">Index load time: ${loadStats.indexLoadTime.toFixed(2)}ms</div>
+                    <div class="file-info">Memory usage: ~5KB per kanji (vs 79MB for full dataset)</div>
+                    <div class="file-info">Total kanji available: 11,661 individual files</div>
+                    <div class="file-info">Lookups performed: ${loadStats.totalLookups}</div>
+                    <div class="file-info">Average load time: ${avgLoadTime.toFixed(2)}ms</div>
+                `;
+                
+                loading.textContent = '';
+                
+            } catch (error) {
+                console.error('Error looking up kanji:', error);
+                kanjiResult.innerHTML = `<div class="error">Error looking up kanji: ${error.message}</div>`;
+                loading.textContent = '';
+            }
+        };
+
+        // Clear results
+        window.clearResults = function() {
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('kanjiResult').innerHTML = '';
+            document.getElementById('loading').textContent = 'Loading...';
+        };
+
+        // Auto-load data on page load
+        window.addEventListener('load', () => {
+            loadIndividualData();
+        });
+    </script>
+</body>
+</html>

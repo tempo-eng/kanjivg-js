@@ -128,3 +128,5 @@ const loader = new SVGFileLoader('/kanji/');
 await loader.loadIndex();
 const kanji = await loader.loadKanjiFromSVG('並');
 */
+
+

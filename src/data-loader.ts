@@ -1,15 +1,27 @@
 import { KanjiData, Kanji, StrokeGroup, Stroke } from './types';
 
+interface LookupIndex {
+  [kanjiCode: string]: string; // kanji code -> file path
+}
+
 /**
  * Data loader for KanjiVG data
  * Handles loading and parsing of SVG files and index data
  */
+interface CacheEntry {
+  kanji: Kanji;
+  lastAccessed: number;
+}
+
 export class DataLoader {
   private baseUrl: string;
-  private cache: Map<string, Kanji> = new Map();
+  private cache: Map<string, CacheEntry> = new Map();
+  private lookupIndex: LookupIndex | null = null;
+  private maxCacheSize: number;
 
-  constructor(baseUrl: string = '') {
+  constructor(baseUrl: string = '', maxCacheSize: number = 100) {
     this.baseUrl = baseUrl;
+    this.maxCacheSize = maxCacheSize;
   }
 
   /**
@@ -56,11 +68,136 @@ export class DataLoader {
   }
 
   /**
+   * Load individual kanji data (memory-efficient)
+   */
+  async loadIndividualKanjiData(lookupIndexUrl: string, individualBaseUrl?: string): Promise<KanjiData> {
+    const individualUrl = individualBaseUrl || `${this.baseUrl}/individual`;
+    
+    // Load lookup index
+    if (!this.lookupIndex) {
+      const indexResponse = await fetch(lookupIndexUrl);
+      this.lookupIndex = await indexResponse.json();
+    }
+
+    // Return a proxy object that loads individual kanji files on-demand
+    return {
+      kanji: new Proxy({} as Record<string, Kanji>, {
+        get: (target, prop) => {
+          if (typeof prop === 'string') {
+            return this.getIndividualKanji(prop, individualUrl);
+          }
+          return target[prop as unknown as keyof typeof target];
+        },
+        has: (target, prop) => {
+          if (typeof prop === 'string') {
+            return this.hasIndividualKanji(prop);
+          }
+          return prop in target;
+        },
+        ownKeys: () => {
+          // This is expensive, so we'll implement a different approach
+          return [];
+        }
+      }),
+      index: await this.loadCharacterIndex()
+    };
+  }
+
+  /**
+   * Get a single kanji from individual file (loads file if needed)
+   */
+  private async getIndividualKanji(code: string, individualBaseUrl: string): Promise<Kanji | undefined> {
+    // Check cache first
+    if (this.cache.has(code)) {
+      const entry = this.cache.get(code)!;
+      // Update last accessed time for LRU
+      entry.lastAccessed = Date.now();
+      return entry.kanji;
+    }
+
+    // Find which file contains this kanji
+    const filePath = this.lookupIndex?.[code];
+    if (!filePath) {
+      return undefined;
+    }
+
+    try {
+      const response = await fetch(`${individualBaseUrl}/${filePath}`);
+      const kanji = await response.json();
+      
+      if (kanji) {
+        this.addToCache(code, kanji);
+      }
+      
+      return kanji;
+    } catch (error) {
+      console.error(`Failed to load kanji ${code} from ${filePath}:`, error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Add kanji to cache with LRU eviction
+   */
+  private addToCache(code: string, kanji: Kanji): void {
+    // If cache is at max size, evict least recently used
+    if (this.cache.size >= this.maxCacheSize) {
+      this.evictLRU();
+    }
+
+    // Add new entry
+    this.cache.set(code, {
+      kanji,
+      lastAccessed: Date.now()
+    });
+  }
+
+  /**
+   * Evict least recently used kanji from cache
+   */
+  private evictLRU(): void {
+    let oldestKey = '';
+    let oldestTime = Date.now();
+
+    for (const [key, entry] of this.cache.entries()) {
+      if (entry.lastAccessed < oldestTime) {
+        oldestTime = entry.lastAccessed;
+        oldestKey = key;
+      }
+    }
+
+    if (oldestKey) {
+      this.cache.delete(oldestKey);
+    }
+  }
+
+  /**
+   * Check if a kanji exists in individual files
+   */
+  private hasIndividualKanji(code: string): boolean {
+    return this.lookupIndex?.[code] !== undefined;
+  }
+
+  /**
+   * Load character index
+   */
+  private async loadCharacterIndex(): Promise<Record<string, string[]>> {
+    // Load from the character index file
+    try {
+      const response = await fetch(`${this.baseUrl}/kanjivg-index.json`);
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to load character index:', error);
+      return {};
+    }
+  }
+
+  /**
    * Load a single kanji from SVG file
    */
   async loadKanjiFromSVG(svgUrl: string): Promise<Kanji | null> {
     if (this.cache.has(svgUrl)) {
-      return this.cache.get(svgUrl)!;
+      return this.cache.get(svgUrl)!.kanji;
     }
 
     try {
@@ -69,7 +206,10 @@ export class DataLoader {
       const kanji = this.parseSVG(svgContent);
       
       if (kanji) {
-        this.cache.set(svgUrl, kanji);
+        this.cache.set(svgUrl, {
+          kanji,
+          lastAccessed: Date.now()
+        });
       }
       
       return kanji;
@@ -219,5 +359,24 @@ export class DataLoader {
    */
   getCacheSize(): number {
     return this.cache.size;
+  }
+
+  /**
+   * Get maximum cache size
+   */
+  getMaxCacheSize(): number {
+    return this.maxCacheSize;
+  }
+
+  /**
+   * Set maximum cache size
+   */
+  setMaxCacheSize(size: number): void {
+    this.maxCacheSize = size;
+    
+    // If new size is smaller, evict excess entries
+    while (this.cache.size > this.maxCacheSize) {
+      this.evictLRU();
+    }
   }
 }
