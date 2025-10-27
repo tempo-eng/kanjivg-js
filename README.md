@@ -41,36 +41,6 @@ module.exports = {
 
 ## Usage
 
-### Basic Example
-
-```typescript
-import { KanjiVG } from 'kanjivg-js';
-import { KanjiCard } from 'kanjivg-js/react';
-
-// Create instance - initialization is automatic!
-const kv = new KanjiVG();
-
-// Get a random kanji
-const kanji = await kv.getRandom();
-
-// Render with animation
-<KanjiCard 
-  kanji={kanji} 
-  showInfo={true}
-  animationOptions={{
-    strokeDuration: 800,
-    strokeDelay: 500,
-    showNumbers: true,
-    showTrace: true,
-    strokeStyling: {
-      strokeColour: '#000000',
-      strokeThickness: 3,
-      strokeRadius: 0,
-    }
-  }}
-/>
-```
-
 ## API Reference
 
 ### KanjiVG Methods
@@ -102,6 +72,36 @@ const randomKanji = await kv.getRandom();
 ```
 
 ### KanjiCard Component
+
+### Basic Example
+
+```typescript
+import { KanjiVG } from 'kanjivg-js';
+import { KanjiCard } from 'kanjivg-js/react';
+
+// Create instance - initialization is automatic!
+const kv = new KanjiVG();
+
+// Get a random kanji
+const kanji = await kv.getRandom();
+
+// Render with animation
+<KanjiCard 
+  kanji={kanji} 
+  showInfo={true}
+  animationOptions={{
+    strokeDuration: 800,
+    strokeDelay: 500,
+    showNumbers: true,
+    showTrace: true,
+    strokeStyling: {
+      strokeColour: '#000000',
+      strokeThickness: 3,
+      strokeRadius: 0,
+    }
+  }}
+/>
+```
 
 Animation options:
 
