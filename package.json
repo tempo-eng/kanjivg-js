@@ -1,5 +1,5 @@
 {
-  "name": "kvg-js",
+  "name": "kanjivg-js",
   "version": "0.1.0",
   "description": "TypeScript/React library for searching and animating kanji",
   "main": "dist/index.js",

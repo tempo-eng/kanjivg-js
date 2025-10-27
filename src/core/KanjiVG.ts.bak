@@ -22,7 +22,7 @@ export class KanjiVG {
    * Initialize by loading the index file
    * This should be called before using any methods that require index lookups
    */
-  private async initialize(): Promise<void> {
+  async initialize(): Promise<void> {
     if (this.indexLoaded) {
       return;
     }
