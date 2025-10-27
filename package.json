@@ -15,7 +15,7 @@
   },
   "files": [
     "dist",
-    "data",
+    "data/lookup-index.json",
     "README.md"
   ],
   "scripts": {
@@ -23,7 +23,8 @@
     "dev": "rollup -c -w",
     "test": "jest",
     "type-check": "tsc --noEmit",
-    "prepare": "yarn build"
+    "prepare": "yarn build && yarn clean-npm-install",
+    "clean-npm-install": "find . -type d -name 'kanji-demo' -path '*/kanjivg-js/*' -exec rm -rf {} + || true"
   },
   "keywords": [
     "kanji",

@@ -24,6 +24,8 @@ export class SVGRenderer {
       },
       radicalStyling: {
         radicalColour: '#000000',
+        radicalThickness: 3,
+        radicalRadius: 0,
         ...options.radicalStyling
       },
       traceStyling: {
@@ -31,6 +33,13 @@ export class SVGRenderer {
         traceThickness: 2,
         traceRadius: 0,
         ...options.traceStyling
+      },
+      numberStyling: {
+        font: 'Arial, sans-serif',
+        fontWeight: 'normal',
+        fontColour: '#666',
+        fontSize: '12',
+        ...options.numberStyling
       },
       loop: false,
       className: 'kanjivg-svg',
@@ -68,15 +77,15 @@ export class SVGRenderer {
     }
 
     // Fallback: generate SVG from stroke types (for backward compatibility)
+    // Note: Removed style attribute from root SVG to prevent inheritance issues with text elements
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" 
       width="${opts.width}" 
       height="${opts.height}" 
       viewBox="${opts.viewBox}" 
-      class="${opts.className}"
-      style="fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;">\n`;
+      class="${opts.className}">\n`;
 
-    // Add stroke paths
-    svg += `<g id="kvg:StrokePaths_${code}">\n`;
+    // Add stroke paths - set stroke to transparent and stroke-width to 0 so it doesn't override text fill and font-weight
+    svg += `<g id="kvg:StrokePaths_${code}" stroke="transparent" stroke-width="0">\n`;
     
     // Add trace outline if enabled
     if (opts.showTrace && svgData) {
@@ -114,6 +123,17 @@ export class SVGRenderer {
   ): string {
     // Parse the SVG and add animation to each path
     let animatedSVG = svgData;
+    
+    // Remove style attribute from root SVG element to prevent inheritance issues
+    animatedSVG = animatedSVG.replace(/<svg([^>]*?)style="[^"]+"([^>]*?)>/g, '<svg$1$2>');
+    
+    // Find the <g id="kvg:StrokePaths_..."> element and remove the style attribute that contains stroke colors
+    // This prevents inheritance from overriding text fill and stroke-width
+    animatedSVG = animatedSVG.replace(/<g([^>]*?)id="kvg:StrokePaths_[^"]+"([^>]*?)style="[^"]+"([^>]*?)>/g, '<g$1id="kvg:StrokePaths_$2$3>');
+    animatedSVG = animatedSVG.replace(/<g([^>]*?)style="[^"]+"([^>]*?)id="kvg:StrokePaths_[^"]+"([^>]*?)>/g, '<g$1$2id="kvg:StrokePaths_$3>');
+    
+    console.log('Modified SVG root element:', animatedSVG.match(/<svg[^>]*>/)?.[0]);
+    console.log('Modified SVG group element:', animatedSVG.match(/<g[^>]*id="kvg:StrokePaths_[^"]+"[^>]*>/)?.[0]);
     
     // Add trace outline if enabled
     if (options.showTrace) {
@@ -153,8 +173,8 @@ export class SVGRenderer {
         
         const delay = correctStrokeIndex * (options.strokeDuration + options.strokeDelay);
         const duration = options.strokeDuration;
-        const color = this.getEffectiveStrokeColor(correctStrokeIndex, 0, kanji, options);
-        const strokeStyle = this.createStrokeStyle(options, color);
+        const { color, isRadical } = this.getEffectiveStrokeColorAndIsRadical(correctStrokeIndex, 0, kanji, options);
+        const strokeStyle = this.createStrokeStyle(options, color, isRadical);
         
         // Create animated path
         const animatedPath = `<path id="kvg:${code}-s${correctStrokeIndex + 1}" kvg:type="${existingStrokeType}"${attributes}
@@ -312,8 +332,9 @@ export class SVGRenderer {
 
   /**
    * Get stroke color considering radical styling override
+   * Returns both color and whether this stroke is a radical
    */
-  private getEffectiveStrokeColor(strokeIndex: number, radicalIndex: number, kanji: KanjiInfo, options: Required<StrokeOrderOptions>): string {
+  private getEffectiveStrokeColorAndIsRadical(strokeIndex: number, radicalIndex: number, kanji: KanjiInfo, options: Required<StrokeOrderOptions>): { color: string, isRadical: boolean } {
     // Check if radical styling was provided in the current options
     const hasRadicalStyling = options.radicalStyling && 
       (options.radicalStyling.radicalColour !== '#000000' || 
@@ -326,34 +347,61 @@ export class SVGRenderer {
       
       // If this stroke belongs to a radical component, use radical color
       if (strokeComponent && strokeComponent.isRadical) {
-        return this.getRadicalColor(strokeIndex, options.radicalStyling);
+        // Find the radical's index in the radicals array
+        const radicalIndex = kanji.radicals.findIndex(r => r.element === strokeComponent.element);
+        return { 
+          color: this.getRadicalColor(radicalIndex !== -1 ? radicalIndex : 0, options.radicalStyling),
+          isRadical: true
+        };
       }
     }
     
     // Otherwise use stroke styling
-    return this.getStrokeColor(strokeIndex, options.strokeStyling);
+    return {
+      color: this.getStrokeColor(strokeIndex, options.strokeStyling),
+      isRadical: false
+    };
+  }
+
+  /**
+   * Get stroke color considering radical styling override (legacy method for compatibility)
+   */
+  private getEffectiveStrokeColor(strokeIndex: number, radicalIndex: number, kanji: KanjiInfo, options: Required<StrokeOrderOptions>): string {
+    return this.getEffectiveStrokeColorAndIsRadical(strokeIndex, radicalIndex, kanji, options).color;
   }
 
   /**
    * Find which component a stroke belongs to based on stroke index
    */
   private findStrokeComponent(strokeIndex: number, kanji: KanjiInfo): any {
-    // Use a simplified approach based on the known radical stroke counts
-    // This works for the specific kanji we're testing (姉 and 転)
+    // Try to find which component this stroke belongs to
+    // We use a heuristic based on common radical stroke counts
+    
+    // Build a map of radical positions
+    let currentStrokeIndex = 0;
+    const radicalRanges: Array<{component: any, start: number, end: number}> = [];
     
     for (const component of kanji.components) {
       if (component.isRadical) {
         const radicalStrokeCount = this.getRadicalStrokeCount(component.element, kanji);
-        
-        // Check if this stroke index falls within the radical's stroke range
-        // For now, we'll assume radicals come first in stroke order
-        if (strokeIndex < radicalStrokeCount) {
-          return component;
-        }
+        radicalRanges.push({
+          component,
+          start: currentStrokeIndex,
+          end: currentStrokeIndex + radicalStrokeCount
+        });
+      }
+      // Move to the next component (assume each component has its stroke count)
+      const componentStrokeCount = this.getRadicalStrokeCount(component.element || '', kanji);
+      currentStrokeIndex += componentStrokeCount;
+    }
+    
+    // Check if this stroke index falls within any radical range
+    for (const range of radicalRanges) {
+      if (strokeIndex >= range.start && strokeIndex < range.end) {
+        return range.component;
       }
     }
     
-    // If we can't determine the component, return null
     return null;
   }
 
@@ -366,6 +414,7 @@ export class SVGRenderer {
     const radicalStrokeCounts: { [key: string]: number } = {
       '女': 3,  // 姉 has 女 radical with 3 strokes
       '車': 7,  // 転 has 車 radical with 7 strokes
+      '糹': 6,  // 纛 has 糹 radical with 6 strokes
       '人': 2,
       '口': 3,
       '日': 4,
@@ -384,7 +433,10 @@ export class SVGRenderer {
       '上': 3,
       '下': 3,
       '左': 5,
-      '右': 5
+      '右': 5,
+      '斉': 8,
+      '士': 3,
+      '己': 3
     };
     
     return radicalStrokeCounts[element] || 1;
@@ -393,11 +445,21 @@ export class SVGRenderer {
   /**
    * Create stroke style string
    */
-  private createStrokeStyle(options: Required<StrokeOrderOptions>, color: string): string {
-    const { strokeStyling } = options;
-    const linecap = strokeStyling.strokeRadius > 0 ? 'round' : 'butt';
-    const linejoin = strokeStyling.strokeRadius > 0 ? 'round' : 'miter';
-    return `fill: none; stroke: ${color}; stroke-width: ${strokeStyling.strokeThickness}; stroke-linecap: ${linecap}; stroke-linejoin: ${linejoin};`;
+  private createStrokeStyle(options: Required<StrokeOrderOptions>, color: string, isRadical: boolean = false): string {
+    let thickness: number;
+    let radius: number;
+    
+    if (isRadical && options.radicalStyling) {
+      thickness = options.radicalStyling.radicalThickness || options.strokeStyling.strokeThickness;
+      radius = options.radicalStyling.radicalRadius || options.strokeStyling.strokeRadius;
+    } else {
+      thickness = options.strokeStyling.strokeThickness;
+      radius = options.strokeStyling.strokeRadius;
+    }
+    
+    const linecap = radius > 0 ? 'round' : 'butt';
+    const linejoin = radius > 0 ? 'round' : 'miter';
+    return `fill: none; stroke: ${color}; stroke-width: ${thickness}; stroke-linecap: ${linecap}; stroke-linejoin: ${linejoin};`;
   }
 
   /**
@@ -464,16 +526,29 @@ export class SVGRenderer {
           fill="freeze" />`;
       }
       
-      numbers += `  <text id="kvg:${code}-n${i}" 
+      // Apply number styling
+      const fontFamily = options.numberStyling.font || 'Arial, sans-serif';
+      const fontWeight = options.numberStyling.fontWeight || 'normal';
+      const fontSize = options.numberStyling.fontSize || '12';
+      const fontColour = options.numberStyling.fontColour || '#666';
+      
+      console.log(`Creating stroke number ${i} with styling:`, { fontFamily, fontWeight, fontSize, fontColour });
+      
+      const textElement = `  <text id="kvg:${code}-n${i}" 
         x="${x}" y="${y}" 
         text-anchor="middle" 
-        font-family="Arial, sans-serif" 
-        font-size="12" 
-        fill="#666" 
+        font-family="${fontFamily}" 
+        font-weight="${fontWeight}" 
+        font-size="${fontSize}" 
+        fill="${fontColour}" 
         opacity="${initialOpacity}">
         ${animationElement}
         ${i}
       </text>\n`;
+      
+      console.log('Generated text element:', textElement.substring(0, 100));
+      
+      numbers += textElement;
     }
 
     return numbers;

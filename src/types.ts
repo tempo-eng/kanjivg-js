@@ -75,6 +75,10 @@ export interface StrokeStyling {
 export interface RadicalStyling {
   /** Radical color - string for all radicals, array to cycle through colors */
   radicalColour: string | string[];
+  /** Radical thickness in pixels */
+  radicalThickness?: number;
+  /** Radical radius for rounded line caps and joins */
+  radicalRadius?: number;
 }
 
 export interface TraceStyling {
@@ -84,6 +88,17 @@ export interface TraceStyling {
   traceThickness: number;
   /** Trace radius for rounded line caps and joins */
   traceRadius: number;
+}
+
+export interface NumberStyling {
+  /** Font family for stroke numbers */
+  font?: string;
+  /** Font weight for stroke numbers */
+  fontWeight?: number | string;
+  /** Font color for stroke numbers */
+  fontColour?: string;
+  /** Font size for stroke numbers */
+  fontSize?: number | string;
 }
 
 export interface StrokeOrderOptions {
@@ -103,6 +118,8 @@ export interface StrokeOrderOptions {
   radicalStyling?: RadicalStyling;
   /** Trace styling options */
   traceStyling?: TraceStyling;
+  /** Number styling options */
+  numberStyling?: NumberStyling;
   /** Whether to loop the animation */
   loop?: boolean;
   /** Custom CSS class for styling */

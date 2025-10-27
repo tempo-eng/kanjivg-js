@@ -60,6 +60,11 @@ This is a TypeScript/JavaScript library that provides kanji lookup with SVG stro
 - **Rollup**: Bundles TypeScript to JavaScript
 - **Single Output**: One focused package for React/web applications with all data included
 
+### AI Assistant Rules
+- **Do Only What Is Asked**: When asked to make a change to a file, make ONLY that change. Do not "also" update other files (like README, docs, etc.) unless explicitly requested
+- **Ask First**: If considering additional changes beyond what was requested, ask the user if those changes are appropriate before making them
+- **Scope Limitation**: Focus on the specific task requested without adding "helpful" extras that weren't asked for
+
 ## Current Implementation Status
 
 ### ✅ Completed
@@ -113,3 +118,4 @@ const kanji = await kanjivg.lookup('金');
 - Keep memory efficiency as a core requirement
 - Maintain backward compatibility with existing APIs
 - Test thoroughly with Next.js applications to avoid memory issues
+

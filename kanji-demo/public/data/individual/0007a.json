@@ -1,0 +1,44 @@
+{
+  "code": "0007a",
+  "character": "z",
+  "variant": null,
+  "strokes": {
+    "id": "",
+    "groups": [],
+    "strokes": [
+      {
+        "type": null,
+        "path": "M34.73,36.74c5.62,0,41.16,0,45.26,0",
+        "numberPos": null
+      },
+      {
+        "type": null,
+        "path": "M79.89,36.96c-9.48,10.72-40.58,45.37-48.39,53.84",
+        "numberPos": null
+      },
+      {
+        "type": null,
+        "path": "M31.85,90.79c5.62,0,46.26,0,50.36,0",
+        "numberPos": null
+      }
+    ],
+    "element": "z"
+  },
+  "all_strokes": [
+    {
+      "type": null,
+      "path": "M34.73,36.74c5.62,0,41.16,0,45.26,0",
+      "numberPos": null
+    },
+    {
+      "type": null,
+      "path": "M79.89,36.96c-9.48,10.72-40.58,45.37-48.39,53.84",
+      "numberPos": null
+    },
+    {
+      "type": null,
+      "path": "M31.85,90.79c5.62,0,46.26,0,50.36,0",
+      "numberPos": null
+    }
+  ]
+}

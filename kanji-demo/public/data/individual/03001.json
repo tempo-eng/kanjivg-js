@@ -1,0 +1,24 @@
+{
+  "code": "03001",
+  "character": "、",
+  "variant": null,
+  "strokes": {
+    "id": "",
+    "groups": [],
+    "strokes": [
+      {
+        "type": null,
+        "path": "M13.29,81.39c6.21,4.19,10.69,7.8,13.69,13.54",
+        "numberPos": null
+      }
+    ],
+    "element": "、"
+  },
+  "all_strokes": [
+    {
+      "type": null,
+      "path": "M13.29,81.39c6.21,4.19,10.69,7.8,13.69,13.54",
+      "numberPos": null
+    }
+  ]
+}

@@ -182,14 +182,9 @@ export class DataLoader {
    * Load character index
    */
   private async loadCharacterIndex(): Promise<Record<string, string[]>> {
-    // Load from the character index file
-    try {
-      const response = await fetch(`${this.baseUrl}/kanjivg-index.json`);
-      return await response.json();
-    } catch (error) {
-      console.error('Failed to load character index:', error);
-      return {};
-    }
+    // For individual file mode, we don't have a pre-built character index
+    // Return empty index - character lookup will work via the lookup index
+    return {};
   }
 
   /**

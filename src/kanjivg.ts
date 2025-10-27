@@ -184,6 +184,7 @@ export class KanjiVG {
    * Look up a kanji by character, code, or variant key
    */
   async lookup(input: string | number, options: LookupOptions = {}): Promise<KanjiInfo | null> {
+    console.log('KanjiVG.lookup: Input:', input);
     try {
       let key: string;
       
@@ -195,9 +196,13 @@ export class KanjiVG {
         key = this.canonicalId(input);
       }
       
+      console.log('KanjiVG.lookup: Canonical key:', key);
+      console.log('KanjiVG.lookup: About to access this.data.kanji[key]');
       const kanji = await this.data.kanji[key];
+      console.log('KanjiVG.lookup: Got kanji:', kanji ? kanji.character : 'null');
       
       if (!kanji) {
+        console.log('KanjiVG.lookup: Kanji not found for key:', key);
         return null;
       }
 
@@ -269,7 +274,20 @@ export class KanjiVG {
    * Get all available kanji characters
    */
   getAllCharacters(): string[] {
-    return Object.keys(this.data.index);
+    console.log('getAllCharacters: this.data.index:', this.data.index);
+    console.log('getAllCharacters: this.data.kanji:', typeof this.data.kanji, 'keys:', this.data.kanji ? Object.keys(this.data.kanji).length : 'N/A');
+    
+    // Try to get characters from index first
+    const indexChars = Object.keys(this.data.index);
+    if (indexChars.length > 0) {
+      console.log('getAllCharacters: Returning', indexChars.length, 'characters from index');
+      return indexChars;
+    }
+    
+    // If index is empty, we need to load kanji to get characters
+    // For now, return empty array - the code should handle this gracefully
+    console.log('getAllCharacters: Index is empty, returning empty array');
+    return [];
   }
 
   /**
@@ -319,17 +337,26 @@ export class KanjiVG {
    * Get a random kanji from the database
    */
   async getRandom(): Promise<KanjiInfo | null> {
-    const allCharacters = this.getAllCharacters();
-    if (allCharacters.length === 0) {
+    // Since we're using individual files, we can't easily get all characters
+    // Instead, let's get a random code from the kanji data
+    console.log('getRandom: Attempting to get random kanji');
+    
+    const allCodes = Object.keys(this.data.kanji);
+    console.log('getRandom: Available codes count:', allCodes.length);
+    
+    if (allCodes.length === 0) {
+      console.log('getRandom: No codes available');
       return null;
     }
     
-    const randomIndex = Math.floor(Math.random() * allCharacters.length);
-    const randomCharacter = allCharacters[randomIndex];
+    const randomIndex = Math.floor(Math.random() * allCodes.length);
+    const randomCode = allCodes[randomIndex];
+    console.log('getRandom: Selected random code:', randomCode);
     
-    // Get the first variant of the random character
-    const variants = await this.search(randomCharacter, { limit: 1 });
-    return variants.length > 0 ? variants[0] : null;
+    // Look up the kanji by code
+    const result = await this.lookup(randomCode);
+    console.log('getRandom: Result:', result ? result.character : 'null');
+    return result;
   }
 
   /**

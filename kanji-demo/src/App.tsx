@@ -103,25 +103,34 @@ function App() {
             {/* <h2>{kanji.character}</h2> */}
             <KanjiCard
               kanji={kanji}
+              showInfo={false}
               animationOptions={{
                 strokeDuration: 800, // ✅ Duration of each stroke in ms
                 strokeDelay: 500, // ✅ Delay between strokes in ms
-                flashNumbers: true, // ✅ Show stroke numbers
+                flashNumbers: false, // ✅ Show stroke numbers
+                showNumbers: true,
                 loop: false, // ✅ Don't loop animation
                 showTrace: true,
                 strokeStyling: {
-                  strokeColour: ['#1aae42', '#ff0000', '#0000ff', '#00ff00', '#ff00ff', '#00ffff', '#ffff00'],
-                  strokeThickness: 8,
+                  strokeColour: 'black',
+                  strokeThickness: 6,
                   strokeRadius: 0,
                 },
                 radicalStyling: {
-                  radicalColour: ['#1aae42', '#ff0000', '#0000ff', '#00ff00', '#ff00ff', '#00ffff', '#ffff00'],
+                  radicalColour:'#ff0000',
+                  radicalThickness: 8,
+                  radicalRadius: 0,
                 },
                 traceStyling: {
-                  traceColour: '#000000',
+                  traceColour: '#a9a5a5',
                   traceThickness: 2,
                   traceRadius: 0,
                 },
+                numberStyling: {
+                  fontColour: '#e2c0c0',
+                  fontWeight: 900,
+                  fontSize: 9,
+                }
               }}
             />
           </div>

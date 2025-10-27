@@ -1,0 +1,44 @@
+{
+  "code": "00048",
+  "character": "H",
+  "variant": null,
+  "strokes": {
+    "id": "",
+    "groups": [],
+    "strokes": [
+      {
+        "type": null,
+        "path": "M29,15.32c0,29.53,0,44.28,0,77.52",
+        "numberPos": null
+      },
+      {
+        "type": null,
+        "path": "M80.01,15.32c0,29.53,0,44.28,0,77.52",
+        "numberPos": null
+      },
+      {
+        "type": null,
+        "path": "M29.43,52.35c2.31,0,28.69,0,49.65,0",
+        "numberPos": null
+      }
+    ],
+    "element": "H"
+  },
+  "all_strokes": [
+    {
+      "type": null,
+      "path": "M29,15.32c0,29.53,0,44.28,0,77.52",
+      "numberPos": null
+    },
+    {
+      "type": null,
+      "path": "M80.01,15.32c0,29.53,0,44.28,0,77.52",
+      "numberPos": null
+    },
+    {
+      "type": null,
+      "path": "M29.43,52.35c2.31,0,28.69,0,49.65,0",
+      "numberPos": null
+    }
+  ]
+}

@@ -14,6 +14,7 @@ next.config.example.js
 rollup.config.js
 scripts/
 test-cache-size.mjs
+test-package-files.mjs
 tsconfig.json
 yarn.lock
 CONTEXT.md
@@ -21,3 +22,7 @@ CONTEXT.md
 *.test.tsx
 *.test.js
 *.test.jsx
+# Exclude individual kanji files from npm package
+# Users will copy them from node_modules/kanjivg-js/data to their public/ folder
+data/individual/
+data/bundled-kanji-data.json

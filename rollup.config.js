@@ -8,9 +8,9 @@ import { readFileSync } from 'fs';
 const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
 
 export default [
-  // Main package (bundled with all data included)
+  // Main package (uses individual files for lightweight loading)
   {
-    input: 'src/bundled.ts',
+    input: 'src/index.ts',
     output: [
       {
         file: packageJson.main,

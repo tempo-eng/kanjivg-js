@@ -82,13 +82,12 @@ button:disabled {
 .kanji-display {
   margin-top: 20px;
   padding: 20px;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.912);
   border-radius: 12px;
   border: 2px solid rgba(97, 218, 251, 0.3);
 }
 
 .kanji-display h2 {
-  font-size: 4rem;
   margin-bottom: 20px;
   color: #61dafb;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
