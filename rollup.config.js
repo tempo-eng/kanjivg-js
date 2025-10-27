@@ -1,46 +1,84 @@
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import typescript from '@rollup/plugin-typescript';
-import dts from 'rollup-plugin-dts';
-import json from '@rollup/plugin-json';
-import { readFileSync } from 'fs';
+const typescript = require('@rollup/plugin-typescript');
+const resolve = require('@rollup/plugin-node-resolve');
+const commonjs = require('@rollup/plugin-commonjs');
+const copy = require('rollup-plugin-copy');
 
-const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
+// Rollup plugin to keep React components as source for development
+const keepSource = () => ({
+  name: 'keep-source',
+  generateBundle(options, bundle) {
+    // Don't bundle React components, just copy source files
+    Object.keys(bundle).forEach(key => {
+      if (key.includes('react') && bundle[key].isEntry) {
+        delete bundle[key];
+      }
+    });
+  }
+});
 
-export default [
-  // Main package (uses individual files for lightweight loading)
+module.exports = [
+  // Core library build
   {
-    input: 'src/index.ts',
+    input: 'src/core/index.ts',
     output: [
       {
-        file: packageJson.main,
+        file: 'dist/index.js',
         format: 'cjs',
         sourcemap: true,
-        inlineDynamicImports: true,
       },
       {
-        file: packageJson.module,
+        file: 'dist/index.esm.js',
         format: 'esm',
         sourcemap: true,
-        inlineDynamicImports: true,
+      },
+    ],
+    plugins: [
+      resolve(),
+      commonjs(),
+      typescript({
+        tsconfig: './tsconfig.json',
+        declaration: true,
+        declarationDir: './dist',
+      }),
+      copy({
+        targets: [
+          { src: 'kanji/**/*', dest: 'dist/kanji' },
+          { src: 'kvg-index.json', dest: 'dist' },
+        ],
+      }),
+    ],
+    external: ['react', 'react-dom'],
+  },
+  // React components build  
+  {
+    input: 'src/components/index.ts',
+    output: [
+      {
+        file: 'dist/react.js',
+        format: 'cjs',
+        sourcemap: true,
+        globals: {
+          'react': 'React',
+          'react-dom': 'ReactDOM',
+        },
+      },
+      {
+        file: 'dist/react.esm.js',
+        format: 'esm',
+        sourcemap: true,
       },
     ],
     plugins: [
       resolve({
-        browser: true,
+        preferBuiltins: false,
       }),
       commonjs(),
-      json(),
       typescript({
         tsconfig: './tsconfig.json',
+        declaration: true,
+        declarationDir: './dist',
       }),
     ],
-    external: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
-  },
-  {
-    input: 'dist/index.d.ts',
-    output: [{ file: 'dist/index.d.ts', format: 'esm' }],
-    plugins: [dts()],
-    external: [/\.css$/],
+    external: ['react', 'react-dom'],
   },
 ];
