@@ -141,6 +141,8 @@ export interface ComponentInfo {
   isRadical?: boolean;
   /** Radical number if applicable */
   radicalNumber?: string;
+  /** Number of strokes in this component */
+  strokeCount?: number;
   /** Whether it's a traditional form */
   isTraditional?: boolean;
   /** Whether it's a variant form */
@@ -162,6 +164,8 @@ export interface KanjiInfo {
   components: ComponentInfo[];
   /** Radical information */
   radicals: ComponentInfo[];
+  /** Full stroke group hierarchy with radical information */
+  strokes?: StrokeGroup;
   /** SVG data */
   svg: string;
 }

@@ -219,6 +219,7 @@ export class KanjiVG {
         strokeTypes: allStrokes.map((s: Stroke) => s.type || ''),
         components,
         radicals,
+        strokes: kanji.strokes, // Include full stroke hierarchy for radical detection
         svg: this.generateSVG(kanji)
       };
     } catch (error) {

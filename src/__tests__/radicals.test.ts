@@ -1,5 +1,6 @@
 import { KanjiVG } from '../kanjivg';
 import { KanjiInfo } from '../types';
+import { loadTestKanjiData } from '../test-utils/test-helpers';
 
 describe('Radical Extraction', () => {
   let kanjivg: KanjiVG;
@@ -7,9 +8,9 @@ describe('Radical Extraction', () => {
   let tenKanji: KanjiInfo | null;
 
   beforeAll(async () => {
-    // Load test data
-    const data = await import('../../data/kanjivg-data.json');
-    kanjivg = new KanjiVG(data.default as any);
+    // Load test data from individual files
+    const data = await loadTestKanjiData(['059c9', '08ee2']); // 姉 and 転
+    kanjivg = new KanjiVG(data);
     
     // Load test kanji
     kinKanji = await kanjivg.lookup('姉');

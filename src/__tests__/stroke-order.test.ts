@@ -7,7 +7,8 @@
 
 import { KanjiVG } from '../kanjivg';
 import { SVGRenderer } from '../svg-renderer';
-import { KanjiInfo, KanjiData } from '../types';
+import { KanjiInfo } from '../types';
+import { loadTestKanjiData } from '../test-utils/test-helpers';
 
 // Expected stroke order for 金 (gold) based on actual KanjiVG SVG data
 const EXPECTED_STROKE_ORDER_金 = [
@@ -48,16 +49,13 @@ describe('Stroke Order Validation', () => {
   let goKanji: KanjiInfo | null;
 
   beforeAll(async () => {
-    // Load the KanjiVG data
-    const data = await import('../../data/kanjivg-data.json');
-    kanjivg = new KanjiVG(data.default as KanjiData);
+    // Load individual kanji files: 金 (091d1), 語 (08a9e)
+    const data = await loadTestKanjiData(['091d1', '08a9e']);
+    kanjivg = new KanjiVG(data);
     svgRenderer = new SVGRenderer();
     
-    // Get both kanji (now async)
-    const kinResults = await kanjivg.search('金');
-    const goResults = await kanjivg.search('語');
-    kinKanji = kinResults[0];
-    goKanji = goResults[0];
+    kinKanji = await kanjivg.lookup('金');
+    goKanji = await kanjivg.lookup('語');
   });
 
   describe('金 (Gold) Kanji', () => {
@@ -268,13 +266,11 @@ describe('Number Display Options', () => {
 
   beforeAll(async () => {
     // Load the KanjiVG data using the same approach as existing tests
-    const data = await import('../../data/kanjivg-data.json');
-    kanjivg = new KanjiVG(data.default as KanjiData);
+    const data = await loadTestKanjiData(['091d1']);
+    kanjivg = new KanjiVG(data);
     svgRenderer = new SVGRenderer();
     
-    // Get test kanji
-    const results = await kanjivg.search('金');
-    kinKanji = results.length > 0 ? results[0] : null;
+    kinKanji = await kanjivg.lookup('金');
     
     expect(kinKanji).toBeTruthy();
   });
@@ -353,13 +349,11 @@ describe('Trace Mode Options', () => {
 
   beforeAll(async () => {
     // Load the KanjiVG data using the same approach as existing tests
-    const data = await import('../../data/kanjivg-data.json');
-    kanjivg = new KanjiVG(data.default as KanjiData);
+    const data = await loadTestKanjiData(['091d1']);
+    kanjivg = new KanjiVG(data);
     svgRenderer = new SVGRenderer();
     
-    // Get test kanji
-    const results = await kanjivg.search('金');
-    kinKanji = results.length > 0 ? results[0] : null;
+    kinKanji = await kanjivg.lookup('金');
     
     expect(kinKanji).toBeTruthy();
   });

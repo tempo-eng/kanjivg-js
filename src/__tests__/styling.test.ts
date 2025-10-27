@@ -10,7 +10,8 @@
 
 import { KanjiVG } from '../kanjivg';
 import { SVGRenderer } from '../svg-renderer';
-import { KanjiInfo, KanjiData } from '../types';
+import { KanjiInfo } from '../types';
+import { loadTestKanjiData } from '../test-utils/test-helpers';
 
 describe('Styling Options', () => {
   let kanjivg: KanjiVG;
@@ -20,16 +21,12 @@ describe('Styling Options', () => {
   let tenKanji: KanjiInfo | null; // 転 (turn/change)
 
   beforeAll(async () => {
-    // Load the KanjiVG data using the same approach as existing tests
-    const data = await import('../../data/bundled-kanji-data.json');
-    kanjivg = new KanjiVG(data.default as KanjiData);
+    // Load individual kanji files: 金 (091d1), 姉 (059c9), 転 (08ee2)
+    const data = await loadTestKanjiData(['091d1', '059c9', '08ee2']);
+    kanjivg = new KanjiVG(data);
     svgRenderer = new SVGRenderer();
     
-    // Get test kanji
-    const results = await kanjivg.search('金');
-    kinKanji = results.length > 0 ? results[0] : null;
-    
-    // Get specific kanji for radical testing
+    kinKanji = await kanjivg.lookup('金');
     kinKanjiAne = await kanjivg.lookup('姉');
     tenKanji = await kanjivg.lookup('転');
     

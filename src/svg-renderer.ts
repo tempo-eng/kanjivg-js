@@ -1,4 +1,4 @@
-import { KanjiInfo, StrokeOrderOptions, AnimationState } from './types';
+import { KanjiInfo, StrokeOrderOptions, AnimationState, StrokeGroup } from './types';
 
 /**
  * SVG renderer with stroke order animation capabilities
@@ -132,8 +132,6 @@ export class SVGRenderer {
     animatedSVG = animatedSVG.replace(/<g([^>]*?)id="kvg:StrokePaths_[^"]+"([^>]*?)style="[^"]+"([^>]*?)>/g, '<g$1id="kvg:StrokePaths_$2$3>');
     animatedSVG = animatedSVG.replace(/<g([^>]*?)style="[^"]+"([^>]*?)id="kvg:StrokePaths_[^"]+"([^>]*?)>/g, '<g$1$2id="kvg:StrokePaths_$3>');
     
-    console.log('Modified SVG root element:', animatedSVG.match(/<svg[^>]*>/)?.[0]);
-    console.log('Modified SVG group element:', animatedSVG.match(/<g[^>]*id="kvg:StrokePaths_[^"]+"[^>]*>/)?.[0]);
     
     // Add trace outline if enabled
     if (options.showTrace) {
@@ -373,27 +371,43 @@ export class SVGRenderer {
   /**
    * Find which component a stroke belongs to based on stroke index
    */
+  /**
+   * Find which component a stroke belongs to by traversing the stroke group hierarchy
+   */
   private findStrokeComponent(strokeIndex: number, kanji: KanjiInfo): any {
-    // Try to find which component this stroke belongs to
-    // We use a heuristic based on common radical stroke counts
-    
-    // Build a map of radical positions
-    let currentStrokeIndex = 0;
-    const radicalRanges: Array<{component: any, start: number, end: number}> = [];
-    
-    for (const component of kanji.components) {
-      if (component.isRadical) {
-        const radicalStrokeCount = this.getRadicalStrokeCount(component.element, kanji);
-        radicalRanges.push({
-          component,
-          start: currentStrokeIndex,
-          end: currentStrokeIndex + radicalStrokeCount
-        });
+    // If we don't have stroke groups, fall back to component-based approach
+    if (!kanji.strokes) {
+      // Build a map of radical positions using component information
+      let currentStrokeIndex = 0;
+      const radicalRanges: Array<{component: any, start: number, end: number}> = [];
+      
+      for (const component of kanji.components) {
+        if (component.isRadical) {
+          // Use the actual stroke count if available
+          const radicalStrokeCount = component.strokeCount || 1;
+          radicalRanges.push({
+            component,
+            start: currentStrokeIndex,
+            end: currentStrokeIndex + radicalStrokeCount
+          });
+        }
+        // Move to the next component
+        const componentStrokeCount = component.strokeCount || 1;
+        currentStrokeIndex += componentStrokeCount;
       }
-      // Move to the next component (assume each component has its stroke count)
-      const componentStrokeCount = this.getRadicalStrokeCount(component.element || '', kanji);
-      currentStrokeIndex += componentStrokeCount;
+      
+      // Check if this stroke index falls within any radical range
+      for (const range of radicalRanges) {
+        if (strokeIndex >= range.start && strokeIndex < range.end) {
+          return range.component;
+        }
+      }
+      
+      return null;
     }
+    
+    // Use the actual stroke group hierarchy to find which radical this stroke belongs to
+    const radicalRanges = this.getRadicalRangesFromGroups(kanji.strokes);
     
     // Check if this stroke index falls within any radical range
     for (const range of radicalRanges) {
@@ -406,40 +420,45 @@ export class SVGRenderer {
   }
 
   /**
-   * Get approximate stroke count for a radical component
-   * This is a simplified heuristic - in reality we'd need proper component mapping
+   * Extract radical ranges from stroke groups by traversing the hierarchy
    */
-  private getRadicalStrokeCount(element: string, kanji: KanjiInfo): number {
-    // Simple heuristic based on common radicals
-    const radicalStrokeCounts: { [key: string]: number } = {
-      '女': 3,  // 姉 has 女 radical with 3 strokes
-      '車': 7,  // 転 has 車 radical with 7 strokes
-      '糹': 6,  // 纛 has 糹 radical with 6 strokes
-      '人': 2,
-      '口': 3,
-      '日': 4,
-      '月': 4,
-      '水': 4,
-      '火': 4,
-      '木': 4,
-      '金': 8,
-      '土': 3,
-      '山': 3,
-      '川': 3,
-      '田': 5,
-      '大': 3,
-      '小': 3,
-      '中': 4,
-      '上': 3,
-      '下': 3,
-      '左': 5,
-      '右': 5,
-      '斉': 8,
-      '士': 3,
-      '己': 3
+  private getRadicalRangesFromGroups(group: StrokeGroup): Array<{component: any, start: number, end: number}> {
+    const ranges: Array<{component: any, start: number, end: number}> = [];
+    
+    // Recursively process groups to find radicals and count strokes
+    const processGroup = (g: StrokeGroup, offset: number): number => {
+      let strokesInThisGroup = 0;
+      
+      // First, count direct strokes in this group
+      strokesInThisGroup += g.strokes.length;
+      
+      // Process subgroups recursively and accumulate their strokes
+      for (const subgroup of g.groups) {
+        const subgroupStrokes = processGroup(subgroup, offset + strokesInThisGroup);
+        strokesInThisGroup += subgroupStrokes;
+      }
+      
+      // Check if this group is a radical and add it to ranges
+      if ((g.radicalForm || g.radical) && g.element) {
+        ranges.push({
+          component: {
+            element: g.element,
+            position: g.position,
+            isRadical: true,
+            radicalNumber: g.radical,
+            strokeCount: strokesInThisGroup
+          },
+          start: offset,
+          end: offset + strokesInThisGroup
+        });
+      }
+      
+      return strokesInThisGroup;
     };
     
-    return radicalStrokeCounts[element] || 1;
+    processGroup(group, 0);
+    
+    return ranges;
   }
 
   /**
