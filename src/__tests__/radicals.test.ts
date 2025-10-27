@@ -13,8 +13,10 @@ describe('Radical Extraction', () => {
     kanjivg = new KanjiVG(data);
     
     // Load test kanji
-    kinKanji = await kanjivg.lookup('姉');
-    tenKanji = await kanjivg.lookup('転');
+    const kinResults = await kanjivg.search('姉');
+    const tenResults = await kanjivg.search('転');
+    kinKanji = kinResults[0] || null;
+    tenKanji = tenResults[0] || null;
   });
 
   describe('姉 (older sister) radical extraction', () => {

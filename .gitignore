@@ -23,6 +23,7 @@ coverage/
 # IDE
 .vscode/
 .idea/
+.cursorignore
 *.swp
 *.swo
 

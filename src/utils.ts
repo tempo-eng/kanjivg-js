@@ -4,65 +4,6 @@ import { KanjiInfo, ComponentInfo } from './types';
  * Utility functions for KanjiVG
  */
 
-/**
- * Convert a character or hex code to canonical ID format
- */
-export function canonicalId(input: string | number): string {
-  let code: number;
-  
-  if (typeof input === 'string') {
-    if (input.length === 1) {
-      code = input.charCodeAt(0);
-    } else if (input.length >= 2 && input.length <= 5) {
-      code = parseInt(input, 16);
-    } else {
-      throw new Error('Character id must be a 1-character string or 2-5 hex digit unicode codepoint');
-    }
-  } else {
-    code = input;
-  }
-
-  if (code > 0xf && code <= 0xfffff) {
-    return code.toString(16).padStart(5, '0');
-  }
-  
-  throw new Error('Character id out of range');
-}
-
-/**
- * Check if a character is a kanji
- */
-export function isKanji(char: string): boolean {
-  const code = char.charCodeAt(0);
-  return (
-    (code >= 0x4e00 && code <= 0x9fc3) || // CJK Unified Ideographs
-    (code >= 0x3400 && code <= 0x4dbf) || // CJK Extension A
-    (code >= 0xf900 && code <= 0xfad9) || // CJK Compatibility Ideographs
-    (code >= 0x2e80 && code <= 0x2eff) || // CJK Radicals Supplement
-    (code >= 0x20000 && code <= 0x2a6df)  // CJK Extension B
-  );
-}
-
-/**
- * Get the Unicode code point from a character
- */
-export function getUnicodeCodePoint(char: string): string {
-  return char.charCodeAt(0).toString(16).padStart(5, '0');
-}
-
-/**
- * Get the character from a Unicode code point
- */
-export function getCharacterFromCodePoint(code: string): string {
-  return String.fromCharCode(parseInt(code, 16));
-}
-
-/**
- * Format a Unicode code point for display
- */
-export function formatUnicodeCodePoint(code: string): string {
-  return `U+${code.toUpperCase()}`;
-}
 
 /**
  * Get stroke count from kanji info

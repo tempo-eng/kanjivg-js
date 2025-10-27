@@ -181,28 +181,15 @@ export class KanjiVG {
   }
 
   /**
-   * Look up a kanji by character, code, or variant key
+   * Internal method to look up kanji data by key
    */
-  async lookup(input: string | number, options: LookupOptions = {}): Promise<KanjiInfo | null> {
-    console.log('KanjiVG.lookup: Input:', input);
+  private async getKanjiByKey(key: string): Promise<KanjiInfo | null> {
     try {
-      let key: string;
-      
-      // If input is a variant key (contains '-'), use it directly
-      if (typeof input === 'string' && input.includes('-')) {
-        key = input;
-      } else {
-        // Otherwise, canonicalize the input to get the base code
-        key = this.canonicalId(input);
-      }
-      
-      console.log('KanjiVG.lookup: Canonical key:', key);
-      console.log('KanjiVG.lookup: About to access this.data.kanji[key]');
+      console.log('KanjiVG.getKanjiByKey: Key:', key);
       const kanji = await this.data.kanji[key];
-      console.log('KanjiVG.lookup: Got kanji:', kanji ? kanji.character : 'null');
+      console.log('KanjiVG.getKanjiByKey: Got kanji:', kanji ? kanji.character : 'null');
       
       if (!kanji) {
-        console.log('KanjiVG.lookup: Kanji not found for key:', key);
         return null;
       }
 
@@ -229,19 +216,50 @@ export class KanjiVG {
   }
 
   /**
-   * Search for kanji by character
+   * Search for kanji by character or code
+   * Returns all variants of a character, or a specific kanji if code is provided
    */
-  async search(character: string, options: LookupOptions = {}): Promise<KanjiInfo[]> {
+  async search(input: string | number, options: LookupOptions = {}): Promise<KanjiInfo[]> {
     const results: KanjiInfo[] = [];
-    const variantKeys = this.data.index[character] || [];
     
-    for (const variantKey of variantKeys) {
-      const kanji = await this.data.kanji[variantKey];
-      if (kanji) {
-        const info = await this.lookup(variantKey);
+    // Determine what type of input this is
+    let searchKey: string;
+    let isHexCode = false;
+    
+    if (typeof input === 'number') {
+      // Numeric input - treat as code
+      searchKey = input.toString(16).padStart(5, '0');
+      isHexCode = true;
+    } else if (input.includes('-')) {
+      // Variant key
+      searchKey = input;
+      isHexCode = true;
+    } else if (input.length >= 2 && input.length <= 5 && /^[0-9a-fA-F]+$/.test(input)) {
+      // Hex code as string
+      searchKey = input;
+      isHexCode = true;
+    } else if (input.length === 1) {
+      // Single character - search in index
+      const variantKeys = this.data.index[input] || [];
+      
+      for (const variantKey of variantKeys) {
+        const info = await this.getKanjiByKey(variantKey);
         if (info) {
           results.push(info);
         }
+      }
+
+      return options.limit ? results.slice(0, options.limit) : results;
+    } else {
+      // Invalid input
+      return [];
+    }
+    
+    // Handle code-based lookup
+    if (isHexCode) {
+      const info = await this.getKanjiByKey(searchKey);
+      if (info) {
+        results.push(info);
       }
     }
 
@@ -355,7 +373,7 @@ export class KanjiVG {
     console.log('getRandom: Selected random code:', randomCode);
     
     // Look up the kanji by code
-    const result = await this.lookup(randomCode);
+    const result = await this.getKanjiByKey(randomCode);
     console.log('getRandom: Result:', result ? result.character : 'null');
     return result;
   }

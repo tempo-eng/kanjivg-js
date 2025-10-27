@@ -31,42 +31,29 @@ describe('KanjiVG', () => {
     kanjivg = new KanjiVG(mockData);
   });
 
-  describe('lookup', () => {
-    it('should lookup kanji by character', async () => {
-      const result = await kanjivg.lookup('並');
-      expect(result).toBeTruthy();
-      expect(result?.character).toBe('並');
-      expect(result?.code).toBe('04e26');
-      expect(result?.strokeCount).toBe(3);
-    });
-
-    it('should lookup kanji by code', async () => {
-      const result = await kanjivg.lookup('04e26');
-      expect(result).toBeTruthy();
-      expect(result?.character).toBe('並');
-      expect(result?.code).toBe('04e26');
-    });
-
-    it('should return null for non-existent kanji', async () => {
-      const result = await kanjivg.lookup('nonexistent');
-      expect(result).toBeNull();
-    });
-
-    it('should handle invalid input', async () => {
-      const result = await kanjivg.lookup('invalid-input');
-      expect(result).toBeNull();
-    });
-  });
-
   describe('search', () => {
     it('should search kanji by character', async () => {
       const results = await kanjivg.search('並');
       expect(results).toHaveLength(1);
       expect(results[0].character).toBe('並');
+      expect(results[0].code).toBe('04e26');
+      expect(results[0].strokeCount).toBe(3);
     });
 
-    it('should return empty array for non-existent character', async () => {
+    it('should search kanji by code', async () => {
+      const results = await kanjivg.search('04e26');
+      expect(results).toHaveLength(1);
+      expect(results[0].character).toBe('並');
+      expect(results[0].code).toBe('04e26');
+    });
+
+    it('should return empty array for non-existent kanji', async () => {
       const results = await kanjivg.search('nonexistent');
+      expect(results).toHaveLength(0);
+    });
+
+    it('should handle invalid input', async () => {
+      const results = await kanjivg.search('invalid-input');
       expect(results).toHaveLength(0);
     });
 
@@ -75,6 +62,7 @@ describe('KanjiVG', () => {
       expect(results).toHaveLength(1);
     });
   });
+
 
   describe('getAllCharacters', () => {
     it('should return all available characters', () => {

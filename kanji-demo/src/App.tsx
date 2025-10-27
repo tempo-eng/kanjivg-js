@@ -32,9 +32,9 @@ function App() {
 
     setLoading(true);
     try {
-      const result = await kanjivg.lookup(inputValue.trim());
-      if (result) {
-        setKanji(result);
+      const results = await kanjivg.search(inputValue.trim());
+      if (results && results.length > 0) {
+        setKanji(results[0]);
       } else {
         alert('Kanji not found');
       }

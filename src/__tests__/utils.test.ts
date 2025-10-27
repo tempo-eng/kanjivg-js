@@ -1,9 +1,4 @@
 import {
-  canonicalId,
-  isKanji,
-  getUnicodeCodePoint,
-  getCharacterFromCodePoint,
-  formatUnicodeCodePoint,
   getStrokeCount,
   getStrokeTypes,
   getRadicals,
@@ -25,51 +20,6 @@ import {
 import { KanjiInfo, ComponentInfo } from '../types';
 
 describe('Utils', () => {
-  describe('canonicalId', () => {
-    it('should convert character to canonical ID', () => {
-      expect(canonicalId('並')).toBe('04e26');
-    });
-
-    it('should convert hex string to canonical ID', () => {
-      expect(canonicalId('4e26')).toBe('04e26');
-    });
-
-    it('should handle single character input', () => {
-      expect(canonicalId('A')).toBe('00041');
-    });
-
-    it('should throw error for invalid input', () => {
-      expect(() => canonicalId('invalid')).toThrow();
-    });
-  });
-
-  describe('isKanji', () => {
-    it('should identify kanji characters', () => {
-      expect(isKanji('並')).toBe(true);
-      expect(isKanji('一')).toBe(true);
-      expect(isKanji('人')).toBe(true);
-    });
-
-    it('should reject non-kanji characters', () => {
-      expect(isKanji('A')).toBe(false);
-      expect(isKanji('1')).toBe(false);
-      expect(isKanji('!')).toBe(false);
-    });
-  });
-
-  describe('Unicode utilities', () => {
-    it('should get Unicode code point', () => {
-      expect(getUnicodeCodePoint('並')).toBe('04e26');
-    });
-
-    it('should get character from code point', () => {
-      expect(getCharacterFromCodePoint('04e26')).toBe('並');
-    });
-
-    it('should format Unicode code point', () => {
-      expect(formatUnicodeCodePoint('04e26')).toBe('U+04E26');
-    });
-  });
 
   describe('Kanji info utilities', () => {
     const mockKanji: KanjiInfo = {

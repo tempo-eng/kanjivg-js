@@ -236,16 +236,18 @@
             const lookupStartTime = performance.now();
 
             try {
-                const kanjiInfo = await kanjivg.lookup(input);
+                const results = await kanjivg.search(input);
                 
                 const lookupTime = performance.now() - lookupStartTime;
                 loadStats.totalLookups++;
                 loadStats.totalLoadTime += lookupTime;
                 
-                if (!kanjiInfo) {
+                if (!results || results.length === 0) {
                     kanjiResult.innerHTML = '<div class="error">Kanji not found. Please try a different character or hex code.</div>';
                     return;
                 }
+                
+                const kanjiInfo = results[0];
 
                 // Display kanji information
                 kanjiResult.innerHTML = `

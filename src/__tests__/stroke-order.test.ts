@@ -54,8 +54,10 @@ describe('Stroke Order Validation', () => {
     kanjivg = new KanjiVG(data);
     svgRenderer = new SVGRenderer();
     
-    kinKanji = await kanjivg.lookup('金');
-    goKanji = await kanjivg.lookup('語');
+    const kinResults = await kanjivg.search('金');
+    const goResults = await kanjivg.search('語');
+    kinKanji = kinResults[0] || null;
+    goKanji = goResults[0] || null;
   });
 
   describe('金 (Gold) Kanji', () => {
@@ -270,7 +272,8 @@ describe('Number Display Options', () => {
     kanjivg = new KanjiVG(data);
     svgRenderer = new SVGRenderer();
     
-    kinKanji = await kanjivg.lookup('金');
+    const kinResults = await kanjivg.search('金');
+    kinKanji = kinResults[0] || null;
     
     expect(kinKanji).toBeTruthy();
   });
@@ -353,7 +356,8 @@ describe('Trace Mode Options', () => {
     kanjivg = new KanjiVG(data);
     svgRenderer = new SVGRenderer();
     
-    kinKanji = await kanjivg.lookup('金');
+    const kinResults = await kanjivg.search('金');
+    kinKanji = kinResults[0] || null;
     
     expect(kinKanji).toBeTruthy();
   });

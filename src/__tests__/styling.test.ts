@@ -26,9 +26,13 @@ describe('Styling Options', () => {
     kanjivg = new KanjiVG(data);
     svgRenderer = new SVGRenderer();
     
-    kinKanji = await kanjivg.lookup('金');
-    kinKanjiAne = await kanjivg.lookup('姉');
-    tenKanji = await kanjivg.lookup('転');
+    const kinResults = await kanjivg.search('金');
+    const kinAneResults = await kanjivg.search('姉');
+    const tenResults = await kanjivg.search('転');
+    
+    kinKanji = kinResults[0] || null;
+    kinKanjiAne = kinAneResults[0] || null;
+    tenKanji = tenResults[0] || null;
     
     expect(kinKanji).toBeTruthy();
     expect(kinKanjiAne).toBeTruthy();

@@ -103,17 +103,19 @@ describe('KanjiVG Variant Tests', () => {
 
   describe('Variant Lookup Functionality', () => {
     test('should handle lookup by variant key', async () => {
-      const result = await kanjivg.lookup('04e14-Kaisho');
-      expect(result).toBeDefined();
-      expect(result!.character).toBe('且');
-      expect(result!.variant).toBe('Kaisho');
+      const results = await kanjivg.search('04e14-Kaisho');
+      expect(results.length).toBeGreaterThan(0);
+      const result = results[0];
+      expect(result.character).toBe('且');
+      expect(result.variant).toBe('Kaisho');
     });
 
     test('should handle lookup by base key', async () => {
-      const result = await kanjivg.lookup('04e14');
-      expect(result).toBeDefined();
-      expect(result!.character).toBe('且');
-      expect(result!.variant).toBeNull();
+      const results = await kanjivg.search('04e14');
+      expect(results.length).toBeGreaterThan(0);
+      const result = results[0];
+      expect(result.character).toBe('且');
+      expect(result.variant).toBeNull();
     });
 
     test.skip('should handle characters with no variants', async () => {

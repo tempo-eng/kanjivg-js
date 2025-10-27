@@ -196,8 +196,3 @@ export async function createKanjiVG(maxCacheSize: number = 50, dataBaseUrl: stri
   return new KanjiVG(data, loader);
 }
 
-// Legacy compatibility function
-export async function getKanjiVG(maxCacheSize: number = 50): Promise<KanjiVG> {
-  return createKanjiVG(maxCacheSize);
-}
-
