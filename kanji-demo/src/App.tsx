@@ -114,11 +114,11 @@ function App() {
                 strokeStyling: {
                   strokeColour: 'black',
                   strokeThickness: 6,
-                  strokeRadius: 0,
+                  strokeRadius: 10,
                 },
                 radicalStyling: {
                   radicalColour:'#ff0000',
-                  radicalThickness: 8,
+                  radicalThickness: 2,
                   radicalRadius: 0,
                 },
                 traceStyling: {
@@ -127,9 +127,9 @@ function App() {
                   traceRadius: 0,
                 },
                 numberStyling: {
-                  fontColour: '#e2c0c0',
+                  fontColour: '#10d6a1',
                   fontWeight: 900,
-                  fontSize: 9,
+                  fontSize: 12,
                 }
               }}
             />

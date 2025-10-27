@@ -36,7 +36,7 @@ This is a TypeScript/JavaScript library that provides kanji lookup with SVG stro
 - **Rule**: The bundled package must include ALL compiled files and data
 - **Implementation**: End users must NOT be required to specify any file paths for data
 - **Rationale**: Users should be able to install the library and use it immediately without external dependencies
-- **Current Status**: ✅ Implemented - bundled version includes all 11,661 kanji in `bundled-kanji-data.json`
+- **Current Status**: ✅ Implemented - individual kanji files loaded on-demand with LRU cache
 
 ## Technical Architecture
 
@@ -96,10 +96,8 @@ kanjivg_js/
 │   └── utils.ts          # Utility functions
 ├── dist/                  # Built JavaScript files
 ├── data/                  # Data files
-│   ├── individual/        # Individual kanji files
-│   ├── bundled-kanji-data.json # Complete bundled data
-│   ├── lookup-index.json  # Kanji code -> file path mapping
-│   └── kanjivg-index.json # Character lookup index
+│   ├── individual/        # Individual kanji files (11,661 JSON files)
+│   └── lookup-index.json  # Kanji code -> file path mapping
 └── examples/              # Usage examples
 ```
 

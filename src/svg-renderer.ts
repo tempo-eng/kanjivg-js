@@ -424,21 +424,36 @@ export class SVGRenderer {
    */
   private getRadicalRangesFromGroups(group: StrokeGroup): Array<{component: any, start: number, end: number}> {
     const ranges: Array<{component: any, start: number, end: number}> = [];
+    const groupStarts: Map<StrokeGroup, number> = new Map();
     
-    // Recursively process groups to find radicals and count strokes
-    const processGroup = (g: StrokeGroup, offset: number): number => {
-      let strokesInThisGroup = 0;
+    // First pass: traverse in DOM order and assign stroke indices to groups
+    let globalStrokeIndex = 0;
+    
+    const assignStrokeIndices = (g: StrokeGroup): void => {
+      // Record where this group starts
+      groupStarts.set(g, globalStrokeIndex);
       
-      // First, count direct strokes in this group
-      strokesInThisGroup += g.strokes.length;
-      
-      // Process subgroups recursively and accumulate their strokes
-      for (const subgroup of g.groups) {
-        const subgroupStrokes = processGroup(subgroup, offset + strokesInThisGroup);
-        strokesInThisGroup += subgroupStrokes;
+      // Process direct strokes in this group
+      for (const stroke of g.strokes) {
+        globalStrokeIndex++;
       }
       
-      // Check if this group is a radical and add it to ranges
+      // Process child groups in order
+      for (const subgroup of g.groups) {
+        assignStrokeIndices(subgroup);
+      }
+    };
+    
+    assignStrokeIndices(group);
+    
+    // Second pass: find all radical groups and calculate their ranges
+    const findRadicals = (g: StrokeGroup): void => {
+      const groupStartIndex = groupStarts.get(g)!;
+      
+      // Count strokes that belong to this group
+      const strokesInThisGroup = this.countStrokesInGroup(g);
+      
+      // Check if this group is a radical
       if ((g.radicalForm || g.radical) && g.element) {
         ranges.push({
           component: {
@@ -448,17 +463,31 @@ export class SVGRenderer {
             radicalNumber: g.radical,
             strokeCount: strokesInThisGroup
           },
-          start: offset,
-          end: offset + strokesInThisGroup
+          start: groupStartIndex,
+          end: groupStartIndex + strokesInThisGroup
         });
       }
       
-      return strokesInThisGroup;
+      // Recursively process child groups
+      for (const subgroup of g.groups) {
+        findRadicals(subgroup);
+      }
     };
     
-    processGroup(group, 0);
+    findRadicals(group);
     
     return ranges;
+  }
+  
+  /**
+   * Count all strokes in a group and its children recursively
+   */
+  private countStrokesInGroup(group: StrokeGroup): number {
+    let count = group.strokes.length;
+    for (const subgroup of group.groups) {
+      count += this.countStrokesInGroup(subgroup);
+    }
+    return count;
   }
 
   /**
