@@ -7,10 +7,10 @@ import { KanjiInfo } from './KanjiInfo';
  */
 export const KanjiCard: React.FC<KanjiCardProps> = ({
   kanji,
-  showInfo = false,
   animationOptions,
   onAnimationComplete,
-  className
+  className,
+  infoPanel
 }) => {
   const [kanjiData, setKanjiData] = useState<KanjiData | null>(null);
   const [currentStroke, setCurrentStroke] = useState(0);
@@ -57,6 +57,8 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
 
     setIsAnimating(true);
     const strokeDelay = animationOptions.strokeDelay || 500;
+    const strokeDuration = animationOptions.strokeDuration || 800;
+    const perStrokeInterval = strokeDuration + strokeDelay;
     const strokeCount = kanjiData.strokes.length;
 
     // Animate each stroke
@@ -71,14 +73,14 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
             onAnimationComplete?.();
           }
         }
-      }, i * strokeDelay);
+      }, i * perStrokeInterval);
       
       animationRef.current.push(timer);
     }
 
     // Handle looping
     if (animationOptions.loop) {
-      const totalDuration = strokeCount * strokeDelay;
+      const totalDuration = strokeCount * perStrokeInterval;
       const loopTimer = setTimeout(() => {
         setCurrentStroke(0);
         setIsAnimating(false);
@@ -118,6 +120,35 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
     return width || 3;
   };
 
+  // Determine if info panel should be shown
+  const shouldShowInfo = infoPanel?.showInfo ?? false;
+  
+  // Get info panel styling
+  const getInfoPanelStyle = (): React.CSSProperties | undefined => {
+    return infoPanel?.style;
+  };
+
+  // Get container style based on info panel location
+  const getContainerStyle = (): React.CSSProperties => {
+    if (!shouldShowInfo || !infoPanel?.location) {
+      return {};
+    }
+
+    const location = infoPanel.location;
+    switch (location) {
+      case 'left':
+        return { display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '1rem' };
+      case 'right':
+        return { display: 'flex', flexDirection: 'row-reverse', alignItems: 'flex-start', gap: '1rem' };
+      case 'top':
+        return { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' };
+      case 'bottom':
+        return { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' };
+      default:
+        return {};
+    }
+  };
+
   if (!kanjiData) {
     return (
       <div className={className}>
@@ -127,7 +158,7 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
   }
 
   return (
-    <div className={className || 'kanji-card'}>
+    <div className={className || 'kanji-card'} style={getContainerStyle()}>
       <svg 
         viewBox="0 0 109 109" 
         xmlns="http://www.w3.org/2000/svg"
@@ -187,7 +218,12 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
           ))}
       </svg>
       
-      {showInfo && <KanjiInfo kanjiData={kanjiData} />}
+      {shouldShowInfo && (
+        <KanjiInfo 
+          kanjiData={kanjiData} 
+          style={getInfoPanelStyle()} 
+        />
+      )}
     </div>
   );
 };

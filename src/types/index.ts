@@ -82,12 +82,18 @@ export interface NumberStyling {
 }
 
 // React component props
+export interface InfoPanelConfig {
+  showInfo: boolean;
+  style?: React.CSSProperties;
+  location?: 'left' | 'right' | 'top' | 'bottom';
+}
+
 export interface KanjiCardProps {
   kanji: string | KanjiData;        // Character or KanjiData object
-  showInfo?: boolean;               // Show info panel
   animationOptions?: Partial<AnimationOptions>;
   onAnimationComplete?: () => void;
   className?: string;
+  infoPanel?: InfoPanelConfig;      // Info panel configuration
 }
 
 // Error handling

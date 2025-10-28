@@ -105,5 +105,52 @@ describe('KanjiVG', () => {
       expect(isLoaded).toBe(true);
     });
   });
+
+  describe('searchRadical', () => {
+    it('should return kanji containing the specified radical', async () => {
+      // Mock the radical index
+      const mockRadicalIndex = new Map([
+        ['女', ['姉', '妹', '好']],
+      ]);
+      (kanjiVG as any).radicalIndex = mockRadicalIndex;
+      (kanjiVG as any).radicalIndexLoaded = true;
+
+      // Mock kanji data for the returned characters
+      const mockKanjiData = {
+        character: '姉',
+        unicode: '59c9',
+        isVariant: false,
+        strokes: [{ strokeNumber: 1, path: 'M...', strokeType: '㇐' }],
+        groups: [],
+        strokeCount: 8,
+        radicalInfo: {
+          radical: '女',
+          positions: ['left'],
+          strokeRanges: [[1, 2]]
+        }
+      };
+
+      mockParser.parseSVG.mockReturnValue(mockKanjiData);
+      (kanjiVG as any).loadSVGFile = jest.fn().mockResolvedValue('<svg>...</svg>');
+
+      const results = await kanjiVG.searchRadical('女');
+
+      expect(results).toBeDefined();
+      expect(results.length).toBeGreaterThan(0);
+      expect(results.some(r => r.radicalInfo?.radical === '女')).toBe(true);
+    });
+
+    it('should return empty array for radical not found', async () => {
+      // Mock empty radical index
+      const mockRadicalIndex = new Map();
+      (kanjiVG as any).radicalIndex = mockRadicalIndex;
+      (kanjiVG as any).radicalIndexLoaded = true;
+
+      const results = await kanjiVG.searchRadical('nonexistent');
+
+      expect(results).toBeDefined();
+      expect(results.length).toBe(0);
+    });
+  });
 });
 

@@ -79,6 +79,68 @@ Get a random kanji.
 const randomKanji = await kv.getRandom();
 ```
 
+### KanjiData Interface
+
+The `KanjiData` interface represents a complete kanji character with all its structural and visual information:
+
+```typescript
+interface KanjiData {
+  // Core identifiers
+  character: string;           // The kanji character (e.g., "車")
+  unicode: string;             // Unicode codepoint (e.g., "08eca")
+  variant?: string;            // Variant identifier if present (e.g., "Kaisho")
+  isVariant: boolean;          // True if this is a variant form
+  
+  // Structure
+  strokes: StrokeData[];        // All strokes in order
+  groups: GroupData[];         // Group hierarchy for radical identification
+  radicalInfo?: RadicalInfo;   // Radical information if available
+  
+  // Metadata
+  strokeCount: number;         // Total number of strokes
+  components?: string[];       // Component decomposition
+}
+```
+
+#### StrokeData
+Each stroke contains the visual path and metadata:
+```typescript
+interface StrokeData {
+  strokeNumber: number;        // 1-based stroke order
+  path: string;               // SVG path data (d attribute)
+  strokeType: string;         // kvg:type (e.g., "㇐", "㇑")
+  numberPosition?: {          // Position for stroke number annotation
+    x: number;
+    y: number;
+  };
+  groupId?: string;          // Which group this stroke belongs to
+  isRadicalStroke?: boolean;  // True if part of a radical group
+}
+```
+
+#### GroupData
+Groups represent the hierarchical structure of kanji components:
+```typescript
+interface GroupData {
+  id: string;                 // Group identifier
+  element?: string;           // Component kanji (e.g., "木")
+  radical?: string;           // Radical type (e.g., "general")
+  position?: string;          // Spatial position (e.g., "left", "right")
+  childStrokes: number[];     // Array of stroke numbers in this group
+  children: GroupData[];      // Sub-groups
+}
+```
+
+#### RadicalInfo
+Information about the kanji's radical:
+```typescript
+interface RadicalInfo {
+  radical: string;            // The radical character
+  positions: string[];        // Where the radical appears (e.g., ["left"])
+  strokeRanges: number[][];   // Which strokes are part of the radical
+}
+```
+
 ### KanjiCard Component
 
 ### Basic Example
@@ -96,7 +158,11 @@ const kanji = await kv.getRandom();
 // Render with animation
 <KanjiCard 
   kanji={kanji} 
-  showInfo={true}
+  infoPanel={{
+    showInfo: true,
+    location: 'right',
+    style: { backgroundColor: '#f0f0f0', borderRadius: '8px' }
+  }}
   animationOptions={{
     strokeDuration: 800,
     strokeDelay: 500,
@@ -149,6 +215,73 @@ Animation options:
     fontSize: number;
   };
 }
+```
+
+### KanjiCard Props
+
+```typescript
+interface InfoPanelConfig {
+  showInfo: boolean;
+  style?: React.CSSProperties;
+  location?: 'left' | 'right' | 'top' | 'bottom';
+}
+
+interface KanjiCardProps {
+  kanji: string | KanjiData;        // Character or KanjiData object
+  animationOptions?: Partial<AnimationOptions>;
+  onAnimationComplete?: () => void;
+  className?: string;               // CSS class for the main container
+  infoPanel?: InfoPanelConfig;      // Info panel configuration
+}
+```
+
+**Info Panel Configuration:**
+- `showInfo`: Whether to display the info panel
+- `style`: Inline styles for the info panel (merges with default styles)
+- `location`: Position of the info panel relative to the kanji (`'left' | 'right' | 'top' | 'bottom'`)
+
+**Examples:**
+
+Basic usage with info panel on the right:
+```typescript
+<KanjiCard 
+  kanji={kanji} 
+  infoPanel={{
+    showInfo: true,
+    location: 'right',
+    style: { backgroundColor: '#f5f5f5', borderRadius: '12px' }
+  }}
+/>
+```
+
+Info panel on the left with custom styling:
+```typescript
+<KanjiCard 
+  kanji={kanji} 
+  infoPanel={{
+    showInfo: true,
+    location: 'left',
+    style: { 
+      backgroundColor: '#f0f8ff', 
+      borderRadius: '8px',
+      padding: '1.5rem',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      minWidth: '200px'
+    }
+  }}
+/>
+```
+
+Info panel on top:
+```typescript
+<KanjiCard 
+  kanji={kanji} 
+  infoPanel={{
+    showInfo: true,
+    location: 'top',
+    style: { textAlign: 'center', backgroundColor: '#f9f9f9' }
+  }}
+/>
 ```
 
 ## License
