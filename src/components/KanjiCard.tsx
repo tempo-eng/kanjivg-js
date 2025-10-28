@@ -139,7 +139,7 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
       case 'left':
         return { display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '1rem' };
       case 'right':
-        return { display: 'flex', flexDirection: 'row-reverse', alignItems: 'flex-start', gap: '1rem' };
+        return { display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '1rem' };
       case 'top':
         return { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' };
       case 'bottom':
@@ -157,8 +157,18 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
     );
   }
 
+  const renderInfoBefore = shouldShowInfo && (infoPanel?.location === 'left' || infoPanel?.location === 'top');
+  const renderInfoAfter = shouldShowInfo && (infoPanel?.location === 'right' || infoPanel?.location === 'bottom');
+
   return (
     <div className={className || 'kanji-card'} style={getContainerStyle()}>
+      {renderInfoBefore && (
+        <KanjiInfo 
+          kanjiData={kanjiData} 
+          style={getInfoPanelStyle()} 
+        />
+      )}
+
       <svg 
         viewBox="0 0 109 109" 
         xmlns="http://www.w3.org/2000/svg"
@@ -218,7 +228,7 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
           ))}
       </svg>
       
-      {shouldShowInfo && (
+      {renderInfoAfter && (
         <KanjiInfo 
           kanjiData={kanjiData} 
           style={getInfoPanelStyle()} 
