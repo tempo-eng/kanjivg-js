@@ -1,25 +1,35 @@
 {
-  "name": "kanjivg-js",
-  "version": "0.1.0",
+  "name": "@tempo-eng/kanjivg-js",
+  "version": "1.0.0",
   "description": "TypeScript/React library for searching and animating kanji",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/types/index.d.ts",
   "files": [
     "dist",
     "kanji",
-    "kvg-index.json"
+    "kvg-index.json",
+    "vite-plugin.js",
+    "webpack-plugin.js"
   ],
   "exports": {
     ".": {
       "import": "./dist/index.esm.js",
       "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/types/index.d.ts"
     },
     "./react": {
       "import": "./dist/react.esm.js",
       "require": "./dist/react.js",
-      "types": "./dist/react.d.ts"
+      "types": "./dist/components/index.d.ts"
+    },
+    "./vite-plugin": {
+      "import": "./vite-plugin.js",
+      "require": "./vite-plugin.js"
+    },
+    "./webpack-plugin": {
+      "import": "./webpack-plugin.js",
+      "require": "./webpack-plugin.js"
     }
   },
   "sideEffects": [
@@ -33,7 +43,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.{ts,tsx}",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build && npm run build:types"
   },
   "keywords": [
     "kanji",
@@ -44,7 +55,11 @@
     "typescript"
   ],
   "author": "KanjiVG-js Contributors",
-  "license": "CC-BY-SA-3.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tempo-eng/kanjivg-js.git"
+  },
   "dependencies": {
     "react": ">=16.8.0"
   },
