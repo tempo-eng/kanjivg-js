@@ -4,13 +4,13 @@
 
 This document outlines the complete plan for building `kanjivg-js` - a TypeScript/React library for searching and animating kanji characters. The library will be distributed as an npm package that can be imported into web applications and React Native projects.
 
-The library folder will be called `kvg_js` (not `kanjivg_js` to match the existing convention in the repository).
+The library folder will be called `kanjivg_js` (not `kanjivg_js` to match the existing convention in the repository).
 
 ## Project Structure
 
 ```
 kanjivg/
-├── kvg_js/                   # New TypeScript/React library (NEW)
+├── kanjivg_js/                   # New TypeScript/React library (NEW)
 │   ├── src/
 │   │   ├── core/             # Core library functionality
 │   │   │   ├── KanjiVG.ts       # Main class
@@ -923,7 +923,7 @@ Created and tested a minimal bundling POC in `POC/` directory that verifies:
 - ✅ **File sizes**: 1.8KB - 3KB per file (reasonable for bundling)
 - ✅ **SVG content**: Contains all expected elements (stroke paths, stroke numbers, kanji elements)
 - ✅ **Import/Export**: TypeScript interfaces and functions work correctly
-- ✅ **Package structure**: Works with `file:../kvg_js` dependency reference
+- ✅ **Package structure**: Works with `file:../kanjivg_js` dependency reference
 
 **POC Structure:**
 ```

@@ -101,7 +101,7 @@ We may need to produce some small POCs to confirm that we can do things as we ex
 
 Here we begin to implement. It is important that we only implement what is in the plan. As we begin to implement, we may discover additional things that were not apparent during the planning phase. These should be called out and we should decide which way to proceed. 
 
-We will create a folder in this repository to house our new library. The folder will be called `KVG_JS`. The project is expected to be called kanjivg-js, ie i expect people will load the library with import { ... } from 'kanjivg-js';
+We will create a folder in this repository to house our new library. The folder will be called `kanjivg_js`. The project is expected to be called kanjivg-js, ie i expect people will load the library with import { ... } from 'kanjivg-js';
 
 Our project should include a gitignore, cursorignore and npmignore file. 
 

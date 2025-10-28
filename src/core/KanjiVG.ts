@@ -217,7 +217,7 @@ export class KanjiVG {
     // Check if we're in a browser environment
     if (typeof window !== 'undefined') {
       // In development with Vite, the library is loaded via source from src/core
-      // We need to fetch from the kvg_js source files
+      // We need to fetch from the kanjivg_js source files
       try {
         // For Vite, fetch from the source directory using absolute import
         const baseUrl = '/src/core/'; // Since we're in core/, go up to access kanji

@@ -11,7 +11,7 @@ This document reviews our implementation against the original requirements from 
 ### Core Requirements
 
 1. **TypeScript/React library** ✅
-   - Implemented in `kvg_js/` folder
+   - Implemented in `kanjivg_js/` folder
    - TypeScript with strict typing
    - React components built
 
@@ -153,13 +153,13 @@ This document reviews our implementation against the original requirements from 
 ### Phase 3: Implementation ✅
 
 **Required:**
-- Create `kvg_js` folder ✅ (not `KVG_JS`)
+- Create `kanjivg_js` folder ✅ (not `kanjivg_js`)
 - gitignore ✅
 - cursorignore ✅
 - npmignore ✅
 
 **Actual Implementation:**
-- ✅ kvg_js/ folder created
+- ✅ kanjivg_js/ folder created
 - ✅ All files implemented
 - ✅ .gitignore ✅
 - ✅ .cursorignore ✅
@@ -190,8 +190,8 @@ This document reviews our implementation against the original requirements from 
 ### Minor Issues
 
 1. **Folder Name Discrepancy**
-   - Required: `KVG_JS`
-   - Implemented: `kvg_js`
+   - Required: `kanjivg_js`
+   - Implemented: `kanjivg_js`
    - **Status:** Better naming convention (lowercase with underscore)
 
 2. **Project Name Discrepancy**

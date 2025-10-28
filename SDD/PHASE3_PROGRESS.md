@@ -9,7 +9,7 @@ Phase 3 is the implementation phase where we build the actual `kvg-js` library a
 ### What Was Accomplished
 
 1. **Project Structure Created**
-   - Set up `kvg_js/` directory with proper folder structure:
+   - Set up `kanjivg_js/` directory with proper folder structure:
      - `src/core/` - Core library functionality
      - `src/components/` - React components
      - `src/types/` - TypeScript definitions
@@ -35,7 +35,7 @@ Phase 3 is the implementation phase where we build the actual `kvg-js` library a
    - Total: 534 packages installed
 
 5. **Data Files Copied**
-   - All 11,661 SVG files from `../kanji/` → `kvg_js/kanji/`
+   - All 11,661 SVG files from `../kanji/` → `kanjivg_js/kanji/`
    - `kvg-index.json` copied for character lookups
    - Files are bundled into `dist/` during build
 
@@ -229,7 +229,7 @@ The KanjiVG class is structured but file loading needs to be implemented. We nee
 
 ## Current Working Directory
 
-Working in: `/Users/matias/code/matias/kanjivg/kvg_js`
+Working in: `/Users/matias/code/matias/kanjivg/kanjivg_js`
 
 ## Files Created
 
