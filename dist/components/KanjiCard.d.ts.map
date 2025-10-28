@@ -1,1 +1,1 @@
-{"version":3,"file":"KanjiCard.d.ts","sourceRoot":"","sources":["../../src/components/KanjiCard.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAsC,MAAM,OAAO,CAAC;AAC3D,OAAO,EAAE,cAAc,EAA+B,MAAM,UAAU,CAAC;AAGvE;;GAEG;AACH,eAAO,MAAM,SAAS,EAAE,KAAK,CAAC,EAAE,CAAC,cAAc,CAqK9C,CAAC"}
+{"version":3,"file":"KanjiCard.d.ts","sourceRoot":"","sources":["../../src/components/KanjiCard.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAsC,MAAM,OAAO,CAAC;AAC3D,OAAO,EAAE,cAAc,EAA+B,MAAM,UAAU,CAAC;AAGvE;;GAEG;AACH,eAAO,MAAM,SAAS,EAAE,KAAK,CAAC,EAAE,CAAC,cAAc,CAyL9C,CAAC"}

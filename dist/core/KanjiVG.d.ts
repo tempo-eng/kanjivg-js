@@ -13,7 +13,7 @@ export declare class KanjiVG {
      * Initialize by loading the index file
      * This should be called before using any methods that require index lookups
      */
-    initialize(): Promise<void>;
+    private initialize;
     /**
      * Set the index data (for testing or custom index)
      */
@@ -41,7 +41,8 @@ export declare class KanjiVG {
     getRandom(): Promise<KanjiData>;
     /**
      * Load SVG file content for a given unicode
-     * Supports both browser (fetch) and Node.js (fs) environments
+     * In browser: loads via import.meta.glob or direct fetch
+     * In Node.js: reads from file system
      */
     private loadSVGFile;
     /**

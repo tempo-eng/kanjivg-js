@@ -429,8 +429,14 @@ const KanjiCard = ({ kanji, showInfo = false, animationOptions, onAnimationCompl
     const [currentStroke, setCurrentStroke] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
     const animationRef = useRef([]);
-    // Load kanji data
+    // Load kanji data and reset animation state when kanji changes
     useEffect(() => {
+        // Reset animation state when kanji changes
+        setCurrentStroke(0);
+        setIsAnimating(false);
+        // Clear any pending animations
+        animationRef.current.forEach(timer => clearTimeout(timer));
+        animationRef.current = [];
         const loadKanji = async () => {
             if (typeof kanji === 'string') {
                 // TODO: Load from KanjiVG instance
@@ -511,7 +517,16 @@ const KanjiCard = ({ kanji, showInfo = false, animationOptions, onAnimationCompl
     if (!kanjiData) {
         return (jsxRuntimeExports.jsx("div", { className: className, children: jsxRuntimeExports.jsx("div", { children: "Loading kanji..." }) }));
     }
-    return (jsxRuntimeExports.jsxs("div", { className: className || 'kanji-card', children: [jsxRuntimeExports.jsxs("svg", { viewBox: "0 0 109 109", xmlns: "http://www.w3.org/2000/svg", style: { width: '100%', height: 'auto' }, children: [animationOptions?.showTrace && kanjiData.strokes.map((stroke, i) => (jsxRuntimeExports.jsx("path", { d: stroke.path, fill: "none", stroke: animationOptions?.traceStyling?.traceColour || '#a9a5a5', strokeWidth: animationOptions?.traceStyling?.traceThickness || 2, opacity: 0.3 }, `trace-${i}`))), kanjiData.strokes.slice(0, currentStroke).map((stroke, i) => (jsxRuntimeExports.jsx("path", { d: stroke.path, fill: "none", stroke: getStrokeColor(i + 1, stroke.isRadicalStroke), strokeWidth: getStrokeWidth(stroke.isRadicalStroke), strokeLinecap: "round", strokeLinejoin: "round" }, `stroke-${i}`))), animationOptions?.showNumbers && kanjiData.strokes
+    return (jsxRuntimeExports.jsxs("div", { className: className || 'kanji-card', children: [jsxRuntimeExports.jsxs("svg", { viewBox: "0 0 109 109", xmlns: "http://www.w3.org/2000/svg", style: { width: '100%', height: 'auto' }, children: [animationOptions?.showTrace && kanjiData.strokes.map((stroke, i) => {
+                        const traceRadius = animationOptions?.traceStyling?.traceRadius || 0;
+                        return (jsxRuntimeExports.jsx("path", { d: stroke.path, fill: "none", stroke: animationOptions?.traceStyling?.traceColour || '#a9a5a5', strokeWidth: animationOptions?.traceStyling?.traceThickness || 2, strokeLinecap: traceRadius > 0 ? 'round' : 'square', strokeLinejoin: traceRadius > 0 ? 'round' : 'miter', opacity: 0.3 }, `trace-${i}`));
+                    }), kanjiData.strokes.slice(0, currentStroke).map((stroke, i) => {
+                        const isRadical = stroke.isRadicalStroke;
+                        const strokeRadius = isRadical && animationOptions?.radicalStyling
+                            ? animationOptions.radicalStyling.radicalRadius
+                            : animationOptions?.strokeStyling?.strokeRadius;
+                        return (jsxRuntimeExports.jsx("path", { d: stroke.path, fill: "none", stroke: getStrokeColor(i + 1, isRadical), strokeWidth: getStrokeWidth(isRadical), strokeLinecap: strokeRadius && strokeRadius > 0 ? 'round' : 'square', strokeLinejoin: strokeRadius && strokeRadius > 0 ? 'round' : 'miter' }, `stroke-${i}`));
+                    }), animationOptions?.showNumbers && kanjiData.strokes
                         .slice(0, currentStroke)
                         .map((stroke, i) => (jsxRuntimeExports.jsx("text", { x: stroke.numberPosition?.x || 0, y: stroke.numberPosition?.y || 0, fontSize: animationOptions?.numberStyling?.fontSize || 12, fill: animationOptions?.numberStyling?.fontColour || '#000', fontWeight: animationOptions?.numberStyling?.fontWeight || 900, children: i + 1 }, `number-${i}`)))] }), showInfo && jsxRuntimeExports.jsx(KanjiInfo, { kanjiData: kanjiData })] }));
 };

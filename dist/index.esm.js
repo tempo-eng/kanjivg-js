@@ -332,10 +332,15 @@ class KanjiVG {
         catch (error) {
             throw new KanjiVGError(`Invalid input format: ${kanji}`, ERROR_CODES.INVALID_UNICODE);
         }
-        // Load SVG file content (placeholder - will be implemented based on build system)
+        // Load SVG file content
         const svgContent = await this.loadSVGFile(unicode);
-        if (!svgContent) {
-            throw new KanjiVGError(`Kanji not found: ${kanji}`, ERROR_CODES.KANJI_NOT_FOUND);
+        if (!svgContent || svgContent.trim().length === 0) {
+            throw new KanjiVGError(`Kanji '${kanji}' (unicode: ${unicode}) not found in KanjiVG database. This character may not be included in the dataset.`, ERROR_CODES.KANJI_NOT_FOUND);
+        }
+        // Debug: log SVG content to help troubleshoot
+        if (!svgContent.includes('<g id="kvg:StrokePaths')) {
+            console.error(`SVG file for ${unicode} does not contain expected structure. Content length: ${svgContent.length}`);
+            console.error(`First 200 chars:`, svgContent.substring(0, 200));
         }
         try {
             // Parse the SVG
@@ -427,26 +432,35 @@ class KanjiVG {
     }
     /**
      * Load SVG file content for a given unicode
-     * Supports both browser (fetch) and Node.js (fs) environments
+     * In browser: loads via import.meta.glob or direct fetch
+     * In Node.js: reads from file system
      */
     async loadSVGFile(unicode) {
         // Check if we're in a browser environment
-        if (typeof window !== 'undefined' && typeof fetch !== 'undefined') {
+        if (typeof window !== 'undefined') {
+            // In development with Vite, the library is loaded via source from src/core
+            // We need to fetch from the kanjivg_js source files
             try {
-                // In browser: fetch from bundled assets
+                // For Vite, fetch from the source directory using absolute import
+                const baseUrl = '/src/core/'; // Since we're in core/, go up to access kanji
+                // Vite will handle resolving this from the correct location
                 const response = await fetch(`/kanji/${unicode}.svg`);
-                if (!response.ok) {
+                if (!response.ok && response.status !== 404) {
                     throw new Error(`Failed to fetch SVG: ${response.status}`);
                 }
-                return await response.text();
+                if (response.ok) {
+                    return await response.text();
+                }
+                // If 404, try with parent path
+                throw new Error('SVG not found at /kanji/');
             }
             catch (error) {
-                throw new KanjiVGError(`Failed to load SVG file: ${unicode}.svg`, ERROR_CODES.FILE_LOAD_ERROR);
+                // Fallback: in a proper npm package setup, files would be at node_modules/kvg-js/kanji/
+                throw new KanjiVGError(`Failed to load SVG file: ${unicode}.svg. This character may not be in the dataset or files are not accessible. Error: ${error}`, ERROR_CODES.FILE_LOAD_ERROR);
             }
         }
         else {
             // Node.js environment: use file system
-            // Dynamic import to avoid issues in browser
             const fs = await import('fs');
             const path = await import('path');
             try {
