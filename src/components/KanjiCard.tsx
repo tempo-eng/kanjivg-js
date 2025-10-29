@@ -86,7 +86,9 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
 
           // Finish this stroke after its duration
           const finishTimer = setTimeout(() => {
-            setStrokeAnimations(prev => ({ ...prev, [i]: false, [`${i}_animating`]: false }));
+            // Keep isDrawing=true so stroke stays visible after animation completes
+            // Only reset isAnimating flag
+            setStrokeAnimations(prev => ({ ...prev, [i]: false }));
 
             if (i < strokeCount - 1) {
               // Start next stroke after delay
@@ -244,6 +246,7 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
           const totalLen = strokeLengthsRef.current[i] ?? 1000;
           const strokeDuration = durationsRef.current[i] ?? Math.max(1, (totalLen / (animationOptions?.strokeSpeed ?? 1200)) * 1000);
           
+          // Stroke should be visible if currently drawing (isDrawing = true means stroke has been revealed and should stay visible)
           return (
             <path
               key={`stroke-${i}`}
