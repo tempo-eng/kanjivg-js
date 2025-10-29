@@ -93,9 +93,8 @@ module.exports = [
       },
     ],
     plugins: [
-      resolve({
-        preferBuiltins: false,
-      }),
+      replace({ preventAssignment: true, values: { 'process.env.NODE_ENV': JSON.stringify('production') } }),
+      resolve({ preferBuiltins: false }),
       commonjs(),
       typescript({
         tsconfig: './tsconfig.json',
@@ -103,6 +102,6 @@ module.exports = [
         declarationDir: './dist',
       }),
     ],
-    external: ['react', 'react-dom'],
+    external: ['react', 'react-dom', 'react/jsx-runtime'],
   },
 ];
