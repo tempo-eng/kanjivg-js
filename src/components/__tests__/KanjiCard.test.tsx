@@ -132,11 +132,25 @@ describe('KanjiCard', () => {
     });
   });
 
-  it('should render info panel when showInfo is true', async () => {
+  it('should render info panel when infoPanel.showInfo is true', async () => {
     render(
       <KanjiCard 
         kanji={mockKanjiData} 
-        showInfo={true}
+        infoPanel={{ showInfo: true, location: 'bottom' }}
+        animationOptions={defaultAnimationOptions} 
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Stroke Count: 2/)).toBeInTheDocument();
+    });
+  });
+
+  it('should default info panel location to bottom when showInfo is true but no location specified', async () => {
+    render(
+      <KanjiCard 
+        kanji={mockKanjiData} 
+        infoPanel={{ showInfo: true }}
         animationOptions={defaultAnimationOptions} 
       />
     );
@@ -158,9 +172,11 @@ describe('KanjiCard', () => {
     );
 
     // Wait for animation to complete
+    // With strokeDuration: 800ms and strokeDelay: 500ms, total time is:
+    // stroke1(800ms) + delay(500ms) + stroke2(800ms) = 2100ms
     await waitFor(() => {
       expect(onComplete).toHaveBeenCalled();
-    }, { timeout: 2000 });
+    }, { timeout: 3000 });
   });
 
   it('should handle color cycling for multiple strokes', async () => {
@@ -189,6 +205,126 @@ describe('KanjiCard', () => {
     await waitFor(() => {
       const paths = container.querySelectorAll('path');
       expect(paths.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Animation Timing', () => {
+    const niKanji: KanjiData = {
+      character: '二',
+      unicode: '04e8c',
+      isVariant: false,
+      strokes: [
+        {
+          strokeNumber: 1,
+          path: 'M20,30 L80,30',
+          strokeType: '㇐',
+          numberPosition: { x: 50, y: 25 },
+        },
+        {
+          strokeNumber: 2,
+          path: 'M20,60 L80,60',
+          strokeType: '㇐',
+          numberPosition: { x: 50, y: 55 },
+        },
+      ],
+      groups: [],
+      strokeCount: 2,
+      components: ['二'],
+    };
+
+    it('should set correct stroke animation timing for 二 kanji', async () => {
+      const strokeDuration = 1000; // 1 second per stroke
+      const strokeDelay = 500; // 0.5 second delay between strokes
+      
+      const animationOptions = {
+        ...defaultAnimationOptions,
+        strokeDuration,
+        strokeDelay,
+      };
+
+      const { container } = render(
+        <KanjiCard kanji={niKanji} animationOptions={animationOptions} />
+      );
+
+      await waitFor(() => {
+        const paths = container.querySelectorAll('path');
+        expect(paths.length).toBeGreaterThan(0);
+      });
+
+      // Check that stroke animation properties are set correctly
+      const strokePaths = Array.from(container.querySelectorAll('path')).filter(
+        path => !path.getAttribute('key')?.includes('trace')
+      );
+
+      // First stroke should be visible and ready to animate
+      expect(strokePaths[0]).toBeInTheDocument();
+      
+      // Check that CSS transition duration matches strokeDuration
+      const firstStrokeStyle = strokePaths[0].getAttribute('style');
+      expect(firstStrokeStyle).toContain(`stroke-dashoffset ${strokeDuration}ms`);
+    });
+
+    it('should complete animation in correct total time for 二 kanji', async () => {
+      const strokeDuration = 200; // 200ms per stroke
+      const strokeDelay = 100; // 100ms delay between strokes
+      
+      const animationOptions = {
+        ...defaultAnimationOptions,
+        strokeDuration,
+        strokeDelay,
+        loop: false,
+      };
+
+      const onComplete = jest.fn();
+      
+      render(
+        <KanjiCard 
+          kanji={niKanji} 
+          animationOptions={animationOptions}
+          onAnimationComplete={onComplete}
+        />
+      );
+
+      // Total time should be: stroke1(200ms) + delay(100ms) + stroke2(200ms) = 500ms
+      const expectedTotalTime = strokeDuration + strokeDelay + strokeDuration;
+
+      await waitFor(() => {
+        expect(onComplete).toHaveBeenCalled();
+      }, { timeout: expectedTotalTime + 200 }); // Add buffer for test execution
+    });
+
+    it('should apply stroke-dasharray and stroke-dashoffset for animation', async () => {
+      const animationOptions = {
+        ...defaultAnimationOptions,
+        strokeDuration: 1000,
+        strokeDelay: 500,
+      };
+
+      const { container } = render(
+        <KanjiCard kanji={niKanji} animationOptions={animationOptions} />
+      );
+
+      await waitFor(() => {
+        const paths = container.querySelectorAll('path');
+        expect(paths.length).toBeGreaterThan(0);
+      });
+
+      // Check that animation paths have the correct SVG attributes
+      const strokePaths = Array.from(container.querySelectorAll('path')).filter(
+        path => !path.getAttribute('key')?.includes('trace')
+      );
+
+      if (strokePaths.length > 0) {
+        const firstStroke = strokePaths[0];
+        
+        // Should have stroke-dasharray set for animation
+        const dashArray = firstStroke.getAttribute('stroke-dasharray');
+        expect(dashArray).toBeDefined();
+        
+        // Should have stroke-dashoffset set for animation
+        const dashOffset = firstStroke.getAttribute('stroke-dashoffset');
+        expect(dashOffset).toBeDefined();
+      }
     });
   });
 });

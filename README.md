@@ -160,7 +160,7 @@ const kanji = await kv.getRandom();
   kanji={kanji} 
   infoPanel={{
     showInfo: true,
-    location: 'right',
+    location: 'bottom', // default
     style: { backgroundColor: '#f0f0f0', borderRadius: '8px' }
   }}
   animationOptions={{

@@ -44,7 +44,8 @@
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.{ts,tsx}",
     "clean": "rm -rf dist",
-    "prepublishOnly": "npm run clean && npm run build && npm run build:types"
+    "prepublishOnly": "npm run clean && npm run build && npm run build:types",
+    "release": "scripts/release.sh"
   },
   "keywords": [
     "kanji",

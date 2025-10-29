@@ -15,6 +15,7 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
   const [kanjiData, setKanjiData] = useState<KanjiData | null>(null);
   const [currentStroke, setCurrentStroke] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [strokeAnimations, setStrokeAnimations] = useState<{[key: string]: boolean}>({});
   const animationRef = useRef<NodeJS.Timeout[]>([]);
 
   // Load kanji data and reset animation state when kanji changes
@@ -22,6 +23,7 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
     // Reset animation state when kanji changes
     setCurrentStroke(0);
     setIsAnimating(false);
+    setStrokeAnimations({});
     
     // Clear any pending animations
     animationRef.current.forEach(timer => clearTimeout(timer));
@@ -58,13 +60,29 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
     setIsAnimating(true);
     const strokeDelay = animationOptions.strokeDelay || 500;
     const strokeDuration = animationOptions.strokeDuration || 800;
-    const perStrokeInterval = strokeDuration + strokeDelay;
     const strokeCount = kanjiData.strokes.length;
 
     // Animate each stroke
     for (let i = 0; i < strokeCount; i++) {
-      const timer = setTimeout(() => {
+      // Start time for this stroke: i * (strokeDuration + strokeDelay)
+      const strokeStartTime = i * (strokeDuration + strokeDelay);
+      
+      // Start drawing this stroke
+      const startTimer = setTimeout(() => {
         setCurrentStroke(i + 1);
+        setStrokeAnimations(prev => ({ ...prev, [i]: true }));
+        
+        // Trigger the CSS animation by updating strokeDashoffset after a brief delay
+        setTimeout(() => {
+          setStrokeAnimations(prev => ({ ...prev, [`${i}_animating`]: true }));
+        }, 10);
+      }, strokeStartTime);
+      
+      animationRef.current.push(startTimer);
+      
+      // Finish drawing this stroke after strokeDuration
+      const finishTimer = setTimeout(() => {
+        setStrokeAnimations(prev => ({ ...prev, [i]: false, [`${i}_animating`]: false }));
         
         // Check if this is the last stroke
         if (i === strokeCount - 1) {
@@ -73,17 +91,18 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
             onAnimationComplete?.();
           }
         }
-      }, i * perStrokeInterval);
+      }, strokeStartTime + strokeDuration);
       
-      animationRef.current.push(timer);
+      animationRef.current.push(finishTimer);
     }
 
     // Handle looping
     if (animationOptions.loop) {
-      const totalDuration = strokeCount * perStrokeInterval;
+      const totalDuration = strokeCount * (strokeDuration + strokeDelay);
       const loopTimer = setTimeout(() => {
         setCurrentStroke(0);
         setIsAnimating(false);
+        setStrokeAnimations({});
         startAnimation();
       }, totalDuration);
       animationRef.current.push(loopTimer);
@@ -130,11 +149,12 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
 
   // Get container style based on info panel location
   const getContainerStyle = (): React.CSSProperties => {
-    if (!shouldShowInfo || !infoPanel?.location) {
+    if (!shouldShowInfo) {
       return {};
     }
 
-    const location = infoPanel.location;
+    // Default to 'bottom' if showInfo is true but no location is specified
+    const location = infoPanel?.location || 'bottom';
     switch (location) {
       case 'left':
         return { display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: '1rem' };
@@ -157,8 +177,10 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
     );
   }
 
-  const renderInfoBefore = shouldShowInfo && (infoPanel?.location === 'left' || infoPanel?.location === 'top');
-  const renderInfoAfter = shouldShowInfo && (infoPanel?.location === 'right' || infoPanel?.location === 'bottom');
+  // Default to 'bottom' if showInfo is true but no location is specified
+  const effectiveLocation = shouldShowInfo ? (infoPanel?.location || 'bottom') : null;
+  const renderInfoBefore = shouldShowInfo && (effectiveLocation === 'left' || effectiveLocation === 'top');
+  const renderInfoAfter = shouldShowInfo && (effectiveLocation === 'right' || effectiveLocation === 'bottom');
 
   return (
     <div className={className || 'kanji-card'} style={getContainerStyle()}>
@@ -198,6 +220,10 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
             ? animationOptions.radicalStyling.radicalRadius
             : animationOptions?.strokeStyling?.strokeRadius;
           
+          const isAnimating = strokeAnimations[i] === true;
+          const isDrawing = strokeAnimations[`${i}_animating`] === true;
+          const strokeDuration = animationOptions?.strokeDuration || 800;
+          
           return (
             <path
               key={`stroke-${i}`}
@@ -207,6 +233,11 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
               strokeWidth={getStrokeWidth(isRadical)}
               strokeLinecap={strokeRadius && strokeRadius > 0 ? 'round' : 'square'}
               strokeLinejoin={strokeRadius && strokeRadius > 0 ? 'round' : 'miter'}
+              strokeDasharray={isAnimating ? "1000" : "0"}
+              strokeDashoffset={isDrawing ? "0" : "1000"}
+              style={{
+                transition: isAnimating ? `stroke-dashoffset ${strokeDuration}ms linear` : 'none'
+              }}
             />
           );
         })}
