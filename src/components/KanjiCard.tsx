@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { KanjiCardProps, KanjiData, AnimationOptions } from '../types';
 import { KanjiInfo } from './KanjiInfo';
+import { getPathLength } from '../utils/kanjiUtils';
 
 /**
  * KanjiCard - React component for displaying and animating kanji strokes
@@ -27,16 +28,21 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
     setIsAnimating(false);
     setStrokeAnimations({});
     
-    // Clear any pending animations
+    // Clear any pending animations and stroke lengths
     animationRef.current.forEach(timer => clearTimeout(timer));
     animationRef.current = [];
+    strokeLengthsRef.current = {};
+    durationsRef.current = {};
     
     const loadKanji = async () => {
       if (typeof kanji === 'string') {
         // TODO: Load from KanjiVG instance
         // For now, we'll use placeholder data
-        console.log('Loading kanji:', kanji);
       } else {
+        // Calculate stroke lengths from path data
+        kanji.strokes.forEach((stroke, index) => {
+          strokeLengthsRef.current[index] = getPathLength(stroke.path);
+        });
         setKanjiData(kanji);
       }
     };
@@ -70,7 +76,7 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
       // Set initial state (dashoffset at full length)
       setStrokeAnimations(prev => ({ ...prev, [i]: true, [`${i}_animating`]: false }));
 
-      // After paint, compute duration from length if speed provided, then start drawing
+      // Compute duration from pre-calculated length and start drawing
       const raf = () => {
         const startDrawing = () => {
           const len = strokeLengthsRef.current[i] ?? 1000;

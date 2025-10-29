@@ -231,8 +231,10 @@ describe('KanjiCard', () => {
     };
 
     it('should set correct stroke animation timing for 二 kanji', async () => {
-      const strokeSpeed = 1000; // 1000 px/s => 1000ms for default length 1000
+      const strokeSpeed = 1000; // 1000 px/s
       const strokeDelay = 500; // 0.5 second delay between strokes
+      // Path M20,30 L80,30 has length 60px (horizontal line: 80-20=60)
+      // At 1000px/s, duration = 60px / 1000px/s = 0.06s = 60ms
       
       const animationOptions = {
         ...defaultAnimationOptions,
@@ -257,15 +259,17 @@ describe('KanjiCard', () => {
       // First stroke should be visible and ready to animate
       expect(strokePaths[0]).toBeTruthy();
       
-      // Check that CSS transition duration matches strokeDuration
+      // Check that CSS transition duration matches calculated duration based on actual path length
       const firstStrokeStyle = strokePaths[0].getAttribute('style');
-      const expectedMs = 1000; // 1000px / 1000 px/s => 1000ms
+      const pathLength = 60; // M20,30 L80,30 = 60px
+      const expectedMs = Math.max(1, (pathLength / strokeSpeed) * 1000); // 60ms
       expect(firstStrokeStyle).toContain(`stroke-dashoffset ${expectedMs}ms`);
     });
 
     it('should complete animation in correct total time for 二 kanji', async () => {
-      const strokeSpeed = 5000; // 1000px / 5000 px/s => 200ms per stroke
+      const strokeSpeed = 5000; // 5000 px/s
       const strokeDelay = 100; // 100ms delay between strokes
+      // Path M20,30 L80,30 has length 60px, so at 5000px/s: 60px / 5000px/s = 12ms per stroke
       
       const animationOptions = {
         ...defaultAnimationOptions,
@@ -284,8 +288,9 @@ describe('KanjiCard', () => {
         />
       );
 
-      // Total time should be: stroke1(200ms) + delay(100ms) + stroke2(200ms) = 500ms
-      const perStrokeMs = 200;
+      // Total time should be: stroke1(12ms) + delay(100ms) + stroke2(12ms) = 124ms
+      const pathLength = 60; // M20,30 L80,30 = 60px
+      const perStrokeMs = Math.max(1, (pathLength / strokeSpeed) * 1000); // 12ms
       const expectedTotalTime = perStrokeMs + strokeDelay + perStrokeMs;
 
       await waitFor(() => {
