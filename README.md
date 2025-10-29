@@ -190,6 +190,45 @@ const kanji = await kv.getRandom();
     }
   }}
 />
+
+// Example: Color only specific radical types
+<KanjiCard 
+  kanji={kanji} 
+  animationOptions={{
+    strokeSpeed: 1200,
+    strokeDelay: 500,
+    showNumbers: true,
+    strokeStyling: {
+      strokeColour: '#000000',
+      strokeThickness: 3,
+      strokeRadius: 0,
+    },
+    radicalStyling: {
+      radicalColour: '#ff0000',  // Red for radicals
+      radicalThickness: 3,
+      radicalRadius: 0,
+      radicalType: ['general', 'nelson'],  // Color only general and nelson radicals
+    }
+  }}
+/>
+
+// Example: Color only traditional radicals
+<KanjiCard 
+  kanji={kanji} 
+  animationOptions={{
+    strokeStyling: {
+      strokeColour: '#000000',
+      strokeThickness: 3,
+      strokeRadius: 0,
+    },
+    radicalStyling: {
+      radicalColour: '#0066cc',
+      radicalThickness: 3,
+      radicalRadius: 0,
+      radicalType: ['tradit'],  // Color only traditional radicals
+    }
+  }}
+/>
 ```
 
 Animation options:
