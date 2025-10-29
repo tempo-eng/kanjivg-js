@@ -13,7 +13,7 @@ This library was created using largely a spec-driven-development approach - this
 ## Installation
 
 ```bash
-npm install kanjivg-js
+npm install @tempo-eng/kanjivg-js
 ```
 
 ## Setup for Web Applications
@@ -23,7 +23,7 @@ npm install kanjivg-js
 Add to `vite.config.js`:
 
 ```javascript
-import { kvgJs } from 'kanjivg-js/vite-plugin';
+import { kvgJs } from '@tempo-eng/kanjivg-js/vite-plugin';
 
 export default defineConfig({
   plugins: [
@@ -33,12 +33,12 @@ export default defineConfig({
 });
 ```
 
-### Using the Webpack Plugin
+### Using the Webpack Plugin (Next.js supported)
 
 Add to `webpack.config.js`:
 
 ```javascript
-const KvgJsPlugin = require('kanjivg-js/webpack-plugin');
+const KvgJsPlugin = require('@tempo-eng/kanjivg-js/webpack-plugin');
 
 module.exports = {
   plugins: [
@@ -146,8 +146,8 @@ interface RadicalInfo {
 ### Basic Example
 
 ```typescript
-import { KanjiVG } from 'kanjivg-js';
-import { KanjiCard } from 'kanjivg-js/react';
+import { KanjiVG } from '@tempo-eng/kanjivg-js';
+import { KanjiCard } from '@tempo-eng/kanjivg-js/react';
 
 // Create instance - initialization is automatic!
 const kv = new KanjiVG();
@@ -164,8 +164,8 @@ const kanji = await kv.getRandom();
     style: { backgroundColor: '#f0f0f0', borderRadius: '8px' }
   }}
   animationOptions={{
-    strokeDuration: 800,
-    strokeDelay: 500,
+    strokeSpeed: 1200, // pixels per second (uniform speed)
+    strokeDelay: 500,  // delay between strokes (ms)
     showNumbers: true,
     showTrace: true,
     strokeStyling: {
@@ -182,12 +182,12 @@ Animation options:
 ```typescript
 {
   // Timing
-  strokeDuration?: number;  // Duration per stroke (ms)
-  strokeDelay?: number;    // Delay between strokes (ms)
-  loop?: boolean;          // Loop animation
+  strokeSpeed?: number;     // SVG pixels per second (uniform speed per stroke)
+  strokeDelay?: number;     // Delay between strokes (ms)
+  loop?: boolean;           // Loop animation
   
   // Display
-  showNumbers?: boolean;   // Show stroke numbers
+  showNumbers?: boolean;    // Show stroke numbers
   showTrace?: boolean;      // Show outline trace
   
   // Styling

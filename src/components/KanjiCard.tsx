@@ -247,7 +247,7 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
               strokeWidth={getStrokeWidth(isRadical)}
               strokeLinecap={strokeRadius && strokeRadius > 0 ? 'round' : 'square'}
               strokeLinejoin={strokeRadius && strokeRadius > 0 ? 'round' : 'miter'}
-              strokeDasharray={isAnimating ? totalLen : 0}
+              strokeDasharray={totalLen}
               strokeDashoffset={isDrawing ? 0 : totalLen}
               style={{
                 transition: isAnimating ? `stroke-dashoffset ${strokeDuration}ms linear` : 'none'
