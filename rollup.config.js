@@ -2,6 +2,7 @@ const typescript = require('@rollup/plugin-typescript');
 const resolve = require('@rollup/plugin-node-resolve');
 const commonjs = require('@rollup/plugin-commonjs');
 const copy = require('rollup-plugin-copy');
+const replace = require('@rollup/plugin-replace');
 
 // Rollup plugin to keep React components as source for development
 const keepSource = () => ({
@@ -17,7 +18,7 @@ const keepSource = () => ({
 });
 
 module.exports = [
-  // Core library build
+  // Core library build - CJS (Node): allow fs usage
   {
     input: 'src/core/index.ts',
     output: [
@@ -26,6 +27,29 @@ module.exports = [
         format: 'cjs',
         sourcemap: true,
       },
+    ],
+    plugins: [
+      replace({ preventAssignment: true, values: { __BROWSER__: 'false' } }),
+      resolve(),
+      commonjs(),
+      typescript({
+        tsconfig: './tsconfig.json',
+        declaration: true,
+        declarationDir: './dist',
+      }),
+      copy({
+        targets: [
+          { src: 'kanji/**/*', dest: 'dist/kanji' },
+          { src: 'kvg-index.json', dest: 'dist' },
+        ],
+      }),
+    ],
+    external: ['react', 'react-dom'],
+  },
+  // Core library build - ESM (Browser): strip fs branches
+  {
+    input: 'src/core/index.ts',
+    output: [
       {
         file: 'dist/index.esm.js',
         format: 'esm',
@@ -33,12 +57,12 @@ module.exports = [
       },
     ],
     plugins: [
-      resolve(),
+      replace({ preventAssignment: true, values: { __BROWSER__: 'true' } }),
+      resolve({ preferBuiltins: false }),
       commonjs(),
       typescript({
         tsconfig: './tsconfig.json',
-        declaration: true,
-        declarationDir: './dist',
+        declaration: false,
       }),
       copy({
         targets: [
