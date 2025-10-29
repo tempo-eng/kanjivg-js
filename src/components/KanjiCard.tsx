@@ -17,6 +17,7 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const [strokeAnimations, setStrokeAnimations] = useState<{[key: string]: boolean}>({});
   const animationRef = useRef<NodeJS.Timeout[]>([]);
+  const strokeLengthsRef = useRef<Record<number, number>>({});
 
   // Load kanji data and reset animation state when kanji changes
   useEffect(() => {
@@ -62,28 +63,35 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
     const strokeDuration = animationOptions.strokeDuration || 800;
     const strokeCount = kanjiData.strokes.length;
 
-    // Animate each stroke
+    // Animate each stroke sequentially: draw for strokeDuration, then wait strokeDelay
+    let cumulativeStart = 0;
     for (let i = 0; i < strokeCount; i++) {
-      // Start time for this stroke: i * (strokeDuration + strokeDelay)
-      const strokeStartTime = i * (strokeDuration + strokeDelay);
-      
-      // Start drawing this stroke
       const startTimer = setTimeout(() => {
+        // Reveal this stroke
         setCurrentStroke(i + 1);
-        setStrokeAnimations(prev => ({ ...prev, [i]: true }));
-        
-        // Trigger the CSS animation by updating strokeDashoffset after a brief delay
-        setTimeout(() => {
-          setStrokeAnimations(prev => ({ ...prev, [`${i}_animating`]: true }));
-        }, 10);
-      }, strokeStartTime);
-      
+        // Set initial state (dashoffset at full length)
+        setStrokeAnimations(prev => ({ ...prev, [i]: true, [`${i}_animating`]: false }));
+
+        // Ensure transition triggers reliably
+        const trigger = () => {
+          if (typeof window !== 'undefined' && 'requestAnimationFrame' in window) {
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              setStrokeAnimations(prev => ({ ...prev, [`${i}_animating`]: true }));
+            }));
+          } else {
+            setTimeout(() => {
+              setStrokeAnimations(prev => ({ ...prev, [`${i}_animating`]: true }));
+            }, 16);
+          }
+        };
+        trigger();
+      }, cumulativeStart);
       animationRef.current.push(startTimer);
-      
+
       // Finish drawing this stroke after strokeDuration
       const finishTimer = setTimeout(() => {
         setStrokeAnimations(prev => ({ ...prev, [i]: false, [`${i}_animating`]: false }));
-        
+
         // Check if this is the last stroke
         if (i === strokeCount - 1) {
           setIsAnimating(false);
@@ -91,9 +99,11 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
             onAnimationComplete?.();
           }
         }
-      }, strokeStartTime + strokeDuration);
-      
+      }, cumulativeStart + strokeDuration);
       animationRef.current.push(finishTimer);
+
+      // Next stroke starts after current finishes plus delay
+      cumulativeStart += strokeDuration + strokeDelay;
     }
 
     // Handle looping
@@ -223,6 +233,7 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
           const isAnimating = strokeAnimations[i] === true;
           const isDrawing = strokeAnimations[`${i}_animating`] === true;
           const strokeDuration = animationOptions?.strokeDuration || 800;
+          const totalLen = strokeLengthsRef.current[i] ?? 1000;
           
           return (
             <path
@@ -233,10 +244,22 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
               strokeWidth={getStrokeWidth(isRadical)}
               strokeLinecap={strokeRadius && strokeRadius > 0 ? 'round' : 'square'}
               strokeLinejoin={strokeRadius && strokeRadius > 0 ? 'round' : 'miter'}
-              strokeDasharray={isAnimating ? "1000" : "0"}
-              strokeDashoffset={isDrawing ? "0" : "1000"}
+              strokeDasharray={isAnimating ? totalLen : 0}
+              strokeDashoffset={isDrawing ? 0 : totalLen}
               style={{
                 transition: isAnimating ? `stroke-dashoffset ${strokeDuration}ms linear` : 'none'
+              }}
+              ref={(el) => {
+                if (el) {
+                  try {
+                    const len = el.getTotalLength();
+                    if (!Number.isNaN(len) && len > 0) {
+                      strokeLengthsRef.current[i] = len;
+                    }
+                  } catch (_) {
+                    // ignore
+                  }
+                }
               }}
             />
           );

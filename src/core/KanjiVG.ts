@@ -2,8 +2,11 @@ import { SVGParser } from './SVGParser';
 import { KanjiData, KanjiVGError, ERROR_CODES } from '../types';
 import { toUnicode, unicodeToChar } from '../utils/kanjiUtils';
 
-// This flag is replaced at build time by Rollup for different targets
-declare const __BROWSER__: boolean;
+// Build-time flag for ESM bundle; default to runtime detection in tests/node
+declare const __BROWSER__: boolean | undefined;
+const IS_BROWSER: boolean = (typeof __BROWSER__ !== 'undefined')
+  ? !!__BROWSER__
+  : (typeof window !== 'undefined' && typeof fetch !== 'undefined');
 
 /**
  * Main KanjiVG class for loading and searching kanji data
@@ -34,7 +37,7 @@ export class KanjiVG {
       let indexContent: string;
 
       // Browser build: fetch from public assets
-      if (__BROWSER__) {
+      if (IS_BROWSER) {
         const response = await fetch('/kvg-index.json');
         if (!response.ok) {
           throw new Error(`Failed to fetch index: ${response.status}`);
@@ -161,7 +164,7 @@ export class KanjiVG {
       let indexContent: string;
 
       // Browser build: fetch from public assets
-      if (__BROWSER__) {
+      if (IS_BROWSER) {
         const response = await fetch('/radical-index.json');
         if (!response.ok) {
           throw new Error(`Failed to fetch radical index: ${response.status}`);
@@ -218,7 +221,7 @@ export class KanjiVG {
    */
   private async loadSVGFile(unicode: string): Promise<string> {
     // Browser build: fetch from public assets
-    if (__BROWSER__) {
+    if (IS_BROWSER) {
       // In development with Vite, the library is loaded via source from src/core
       // We need to fetch from the kanjivg_js source files
       try {

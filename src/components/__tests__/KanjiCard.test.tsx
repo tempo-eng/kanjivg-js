@@ -53,7 +53,7 @@ describe('KanjiCard', () => {
   it('should render loading state when kanji data is not provided', () => {
     render(<KanjiCard kanji="車" animationOptions={defaultAnimationOptions} />);
     
-    expect(screen.getByText('Loading kanji...')).toBeInTheDocument();
+    expect(screen.getByText('Loading kanji...')).toBeTruthy();
   });
 
   it('should render kanji with strokes', async () => {
@@ -142,7 +142,7 @@ describe('KanjiCard', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Stroke Count: 2/)).toBeInTheDocument();
+      expect(screen.getByText(/Stroke Count: 2/)).toBeTruthy();
     });
   });
 
@@ -156,7 +156,7 @@ describe('KanjiCard', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Stroke Count: 2/)).toBeInTheDocument();
+      expect(screen.getByText(/Stroke Count: 2/)).toBeTruthy();
     });
   });
 
@@ -257,7 +257,7 @@ describe('KanjiCard', () => {
       );
 
       // First stroke should be visible and ready to animate
-      expect(strokePaths[0]).toBeInTheDocument();
+      expect(strokePaths[0]).toBeTruthy();
       
       // Check that CSS transition duration matches strokeDuration
       const firstStrokeStyle = strokePaths[0].getAttribute('style');
@@ -291,6 +291,46 @@ describe('KanjiCard', () => {
       await waitFor(() => {
         expect(onComplete).toHaveBeenCalled();
       }, { timeout: expectedTotalTime + 200 }); // Add buffer for test execution
+    });
+
+    it('should sequence strokes with duration first, then delay between strokes', async () => {
+      jest.useFakeTimers();
+
+      const strokeDuration = 200;
+      const strokeDelay = 300;
+      const animationOptions = {
+        ...defaultAnimationOptions,
+        strokeDuration,
+        strokeDelay,
+        loop: false,
+      };
+
+      const { container } = render(
+        <KanjiCard kanji={niKanji} animationOptions={animationOptions} />
+      );
+
+      // Initially, ensure SVG exists but no stroke paths yet
+      expect(container.querySelector('svg')).toBeTruthy();
+      expect(container.querySelectorAll('path').length).toBe(0);
+
+      // Run immediate timers (first stroke starts at t=0)
+      jest.advanceTimersByTime(1);
+      await waitFor(() => {
+        expect(container.querySelectorAll('path').length).toBe(1);
+      });
+
+      // During the first stroke drawing window (before duration), currentStroke should still be 1
+      jest.advanceTimersByTime(strokeDuration - 1);
+      // Next stroke should NOT have started yet (delay not elapsed)
+      expect(container.querySelectorAll('path').length).toBe(1);
+
+      // After full duration + delay, second stroke should start
+      jest.advanceTimersByTime(1 + strokeDelay);
+      await waitFor(() => {
+        expect(container.querySelectorAll('path').length).toBeGreaterThan(1);
+      });
+
+      jest.useRealTimers();
     });
 
     it('should apply stroke-dasharray and stroke-dashoffset for animation', async () => {
