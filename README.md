@@ -175,6 +175,21 @@ const kanji = await kv.getRandom();
     }
   }}
 />
+
+// Render without animation (show all strokes immediately)
+<KanjiCard 
+  kanji={kanji} 
+  animationOptions={{
+    animate: false,     // Display all strokes immediately, no animation
+    showNumbers: true,
+    showTrace: false,
+    strokeStyling: {
+      strokeColour: '#000000',
+      strokeThickness: 3,
+      strokeRadius: 0,
+    }
+  }}
+/>
 ```
 
 Animation options:
@@ -185,6 +200,7 @@ Animation options:
   strokeSpeed?: number;     // SVG pixels per second (uniform speed per stroke)
   strokeDelay?: number;     // Delay between strokes (ms)
   loop?: boolean;           // Loop animation
+  animate?: boolean;         // If false, displays all strokes immediately without animation (defaults to true)
   
   // Display
   showNumbers?: boolean;    // Show stroke numbers
@@ -201,6 +217,7 @@ Animation options:
     radicalColour: string | string[];
     radicalThickness: number;
     radicalRadius: number;
+    radicalType?: Array<'general' | 'nelson' | 'tradit'>;  // Filter which radical types are colored
   };
   
   traceStyling?: {

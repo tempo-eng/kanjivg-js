@@ -248,7 +248,14 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
         
         {/* Animated strokes */}
         {kanjiData.strokes.slice(0, currentStroke).map((stroke, i) => {
-          const isRadical = stroke.isRadicalStroke;
+          // Determine if this stroke should be treated as radical based on radicalType selection
+          const selectedTypes = animationOptions?.radicalStyling?.radicalType;
+          let isRadical = !!stroke.isRadicalStroke;
+          if (isRadical && Array.isArray(selectedTypes) && selectedTypes.length > 0) {
+            const group = kanjiData.groups.find(g => g.id === stroke.groupId);
+            const groupType = group?.radical as (undefined | 'general' | 'nelson' | 'tradit');
+            isRadical = !!groupType && selectedTypes.includes(groupType);
+          }
           const strokeRadius = isRadical && animationOptions?.radicalStyling
             ? animationOptions.radicalStyling.radicalRadius
             : animationOptions?.strokeStyling?.strokeRadius;

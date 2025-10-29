@@ -70,6 +70,11 @@ export interface RadicalStyling {
   radicalColour: string | string[];  // Overrides stroke styling for radicals
   radicalThickness: number;
   radicalRadius: number;
+  /**
+   * Which radical types should be colored. If omitted, all radicals are colored.
+   * Accepts values from KanjiVG `kvg:radical` attribute: 'general' | 'nelson' | 'tradit'.
+   */
+  radicalType?: Array<'general' | 'nelson' | 'tradit'>;
 }
 
 export interface TraceStyling {
