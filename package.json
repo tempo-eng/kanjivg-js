@@ -1,6 +1,6 @@
 {
   "name": "@tempo-eng/kanjivg-js",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "TypeScript/React library for searching and animating kanji",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
