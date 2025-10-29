@@ -18,6 +18,7 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
   const [strokeAnimations, setStrokeAnimations] = useState<{[key: string]: boolean}>({});
   const animationRef = useRef<NodeJS.Timeout[]>([]);
   const strokeLengthsRef = useRef<Record<number, number>>({});
+  const durationsRef = useRef<Record<number, number>>({});
 
   // Load kanji data and reset animation state when kanji changes
   useEffect(() => {
@@ -60,63 +61,65 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
 
     setIsAnimating(true);
     const strokeDelay = animationOptions.strokeDelay || 500;
-    const strokeDuration = animationOptions.strokeDuration || 800;
+    const speed = animationOptions.strokeSpeed ?? 1200; // default speed px/s if not provided
     const strokeCount = kanjiData.strokes.length;
 
-    // Animate each stroke sequentially: draw for strokeDuration, then wait strokeDelay
-    let cumulativeStart = 0;
-    for (let i = 0; i < strokeCount; i++) {
-      const startTimer = setTimeout(() => {
-        // Reveal this stroke
-        setCurrentStroke(i + 1);
-        // Set initial state (dashoffset at full length)
-        setStrokeAnimations(prev => ({ ...prev, [i]: true, [`${i}_animating`]: false }));
+    const runStroke = (i: number) => {
+      // Reveal this stroke
+      setCurrentStroke(i + 1);
+      // Set initial state (dashoffset at full length)
+      setStrokeAnimations(prev => ({ ...prev, [i]: true, [`${i}_animating`]: false }));
 
-        // Ensure transition triggers reliably
-        const trigger = () => {
-          if (typeof window !== 'undefined' && 'requestAnimationFrame' in window) {
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-              setStrokeAnimations(prev => ({ ...prev, [`${i}_animating`]: true }));
-            }));
-          } else {
-            setTimeout(() => {
-              setStrokeAnimations(prev => ({ ...prev, [`${i}_animating`]: true }));
-            }, 16);
-          }
+      // After paint, compute duration from length if speed provided, then start drawing
+      const raf = () => {
+        const startDrawing = () => {
+          const len = strokeLengthsRef.current[i] ?? 1000;
+          const effectiveDuration = Math.max(1, (len / speed) * 1000);
+          durationsRef.current[i] = effectiveDuration;
+          setStrokeAnimations(prev => ({ ...prev, [`${i}_animating`]: true }));
+
+          // Finish this stroke after its duration
+          const finishTimer = setTimeout(() => {
+            setStrokeAnimations(prev => ({ ...prev, [i]: false, [`${i}_animating`]: false }));
+
+            if (i < strokeCount - 1) {
+              // Start next stroke after delay
+              const delayTimer = setTimeout(() => runStroke(i + 1), strokeDelay);
+              animationRef.current.push(delayTimer);
+            } else {
+              setIsAnimating(false);
+              if (animationOptions.loop === true) {
+                const restartTimer = setTimeout(() => {
+                  setCurrentStroke(0);
+                  setStrokeAnimations({});
+                  setIsAnimating(false);
+                  runStroke(0);
+                }, strokeDelay);
+                animationRef.current.push(restartTimer);
+              } else {
+                onAnimationComplete?.();
+              }
+            }
+          }, effectiveDuration);
+          animationRef.current.push(finishTimer);
         };
-        trigger();
-      }, cumulativeStart);
-      animationRef.current.push(startTimer);
 
-      // Finish drawing this stroke after strokeDuration
-      const finishTimer = setTimeout(() => {
-        setStrokeAnimations(prev => ({ ...prev, [i]: false, [`${i}_animating`]: false }));
-
-        // Check if this is the last stroke
-        if (i === strokeCount - 1) {
-          setIsAnimating(false);
-          if (animationOptions.loop !== true) {
-            onAnimationComplete?.();
-          }
+        if (typeof window !== 'undefined' && 'requestAnimationFrame' in window) {
+          requestAnimationFrame(() => startDrawing());
+        } else {
+          setTimeout(startDrawing, 16);
         }
-      }, cumulativeStart + strokeDuration);
-      animationRef.current.push(finishTimer);
+      };
 
-      // Next stroke starts after current finishes plus delay
-      cumulativeStart += strokeDuration + strokeDelay;
-    }
+      if (typeof window !== 'undefined' && 'requestAnimationFrame' in window) {
+        requestAnimationFrame(() => requestAnimationFrame(raf));
+      } else {
+        setTimeout(raf, 16);
+      }
+    };
 
-    // Handle looping
-    if (animationOptions.loop) {
-      const totalDuration = strokeCount * (strokeDuration + strokeDelay);
-      const loopTimer = setTimeout(() => {
-        setCurrentStroke(0);
-        setIsAnimating(false);
-        setStrokeAnimations({});
-        startAnimation();
-      }, totalDuration);
-      animationRef.current.push(loopTimer);
-    }
+    // Kick off first stroke
+    runStroke(0);
   };
 
   const getStrokeColor = (strokeNum: number, isRadical: boolean = false): string => {
@@ -232,8 +235,8 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
           
           const isAnimating = strokeAnimations[i] === true;
           const isDrawing = strokeAnimations[`${i}_animating`] === true;
-          const strokeDuration = animationOptions?.strokeDuration || 800;
           const totalLen = strokeLengthsRef.current[i] ?? 1000;
+          const strokeDuration = durationsRef.current[i] ?? Math.max(1, (totalLen / (animationOptions?.strokeSpeed ?? 1200)) * 1000);
           
           return (
             <path

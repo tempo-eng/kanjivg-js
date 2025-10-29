@@ -46,8 +46,9 @@ export interface RadicalInfo {
 
 // Animation and styling interfaces
 export interface AnimationOptions {
-  strokeDuration: number;      // Duration of each stroke animation (ms)
   strokeDelay: number;        // Delay between strokes (ms)
+  /** Animate at constant speed (SVG pixels per second). */
+  strokeSpeed?: number;
   showNumbers: boolean;        // Show stroke order numbers
   loop: boolean;              // Loop the animation
   showTrace: boolean;         // Show outline trace

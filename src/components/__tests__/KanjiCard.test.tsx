@@ -28,7 +28,7 @@ describe('KanjiCard', () => {
   };
 
   const defaultAnimationOptions: AnimationOptions = {
-    strokeDuration: 800,
+    strokeSpeed: 1250, // 1000px / 1250 px/s = 800ms per stroke (with default test length=1000)
     strokeDelay: 500,
     showNumbers: true,
     loop: false,
@@ -171,9 +171,7 @@ describe('KanjiCard', () => {
       />
     );
 
-    // Wait for animation to complete
-    // With strokeDuration: 800ms and strokeDelay: 500ms, total time is:
-    // stroke1(800ms) + delay(500ms) + stroke2(800ms) = 2100ms
+      // Wait for animation to complete
     await waitFor(() => {
       expect(onComplete).toHaveBeenCalled();
     }, { timeout: 3000 });
@@ -233,12 +231,12 @@ describe('KanjiCard', () => {
     };
 
     it('should set correct stroke animation timing for 二 kanji', async () => {
-      const strokeDuration = 1000; // 1 second per stroke
+      const strokeSpeed = 1000; // 1000 px/s => 1000ms for default length 1000
       const strokeDelay = 500; // 0.5 second delay between strokes
       
       const animationOptions = {
         ...defaultAnimationOptions,
-        strokeDuration,
+        strokeSpeed,
         strokeDelay,
       };
 
@@ -261,16 +259,17 @@ describe('KanjiCard', () => {
       
       // Check that CSS transition duration matches strokeDuration
       const firstStrokeStyle = strokePaths[0].getAttribute('style');
-      expect(firstStrokeStyle).toContain(`stroke-dashoffset ${strokeDuration}ms`);
+      const expectedMs = 1000; // 1000px / 1000 px/s => 1000ms
+      expect(firstStrokeStyle).toContain(`stroke-dashoffset ${expectedMs}ms`);
     });
 
     it('should complete animation in correct total time for 二 kanji', async () => {
-      const strokeDuration = 200; // 200ms per stroke
+      const strokeSpeed = 5000; // 1000px / 5000 px/s => 200ms per stroke
       const strokeDelay = 100; // 100ms delay between strokes
       
       const animationOptions = {
         ...defaultAnimationOptions,
-        strokeDuration,
+        strokeSpeed,
         strokeDelay,
         loop: false,
       };
@@ -286,7 +285,8 @@ describe('KanjiCard', () => {
       );
 
       // Total time should be: stroke1(200ms) + delay(100ms) + stroke2(200ms) = 500ms
-      const expectedTotalTime = strokeDuration + strokeDelay + strokeDuration;
+      const perStrokeMs = 200;
+      const expectedTotalTime = perStrokeMs + strokeDelay + perStrokeMs;
 
       await waitFor(() => {
         expect(onComplete).toHaveBeenCalled();
@@ -296,11 +296,11 @@ describe('KanjiCard', () => {
     it('should sequence strokes with duration first, then delay between strokes', async () => {
       jest.useFakeTimers();
 
-      const strokeDuration = 200;
+      const strokeDuration = 200; // implied by speed with default length 1000
       const strokeDelay = 300;
       const animationOptions = {
         ...defaultAnimationOptions,
-        strokeDuration,
+        strokeSpeed: 1000 * (1 / (strokeDuration / 1000)), // 1000px / (200ms) => 5000 px/s
         strokeDelay,
         loop: false,
       };
@@ -309,9 +309,9 @@ describe('KanjiCard', () => {
         <KanjiCard kanji={niKanji} animationOptions={animationOptions} />
       );
 
-      // Initially, ensure SVG exists but no stroke paths yet
+      // Initially, first stroke is revealed immediately (animation starts at t=0)
       expect(container.querySelector('svg')).toBeTruthy();
-      expect(container.querySelectorAll('path').length).toBe(0);
+      expect(container.querySelectorAll('path').length).toBe(1);
 
       // Run immediate timers (first stroke starts at t=0)
       jest.advanceTimersByTime(1);
@@ -336,7 +336,7 @@ describe('KanjiCard', () => {
     it('should apply stroke-dasharray and stroke-dashoffset for animation', async () => {
       const animationOptions = {
         ...defaultAnimationOptions,
-        strokeDuration: 1000,
+        strokeSpeed: 1000, // 1000px / 1000 px/s => 1000ms
         strokeDelay: 500,
       };
 
