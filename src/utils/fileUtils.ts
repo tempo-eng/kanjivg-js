@@ -6,21 +6,7 @@ import * as path from 'path';
 /**
  * Convert a character or unicode string to canonical unicode format
  */
-export function toUnicode(input: string): string {
-  if (input.length === 1) {
-    // Single character - convert to unicode
-    const code = input.codePointAt(0);
-    if (!code) {
-      throw new Error(`Invalid character: ${input}`);
-    }
-    return code.toString(16).padStart(5, '0');
-  } else if (input.length >= 2 && input.length <= 5) {
-    // Already unicode format
-    return input.toLowerCase().padStart(5, '0');
-  } else {
-    throw new Error(`Invalid input format: ${input}`);
-  }
-}
+// Moved to browser-safe module `kanjiUtils.ts`
 
 /**
  * Convert unicode string to character

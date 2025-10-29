@@ -1,6 +1,6 @@
 import { SVGParser } from './SVGParser';
 import { KanjiData, KanjiVGError, ERROR_CODES } from '../types';
-import { toUnicode, unicodeToChar } from '../utils/fileUtils';
+import { toUnicode, unicodeToChar } from '../utils/kanjiUtils';
 
 /**
  * Main KanjiVG class for loading and searching kanji data
