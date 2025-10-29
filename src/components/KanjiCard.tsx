@@ -50,16 +50,28 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
     loadKanji();
   }, [kanji]);
 
-  // Start animation when data is loaded
+  // Start animation when data is loaded (or show all strokes if animate is false)
   useEffect(() => {
-    if (kanjiData && !isAnimating && currentStroke === 0 && animationOptions) {
+    if (!kanjiData) return;
+
+    // Cleanup timers on unmount
+    const cleanup = () => {
+      animationRef.current.forEach(timer => clearTimeout(timer));
+    };
+
+    // If animate is explicitly false, show all strokes immediately
+    if (animationOptions && animationOptions.animate === false) {
+      setCurrentStroke(kanjiData.strokes.length);
+      setIsAnimating(false);
+      return cleanup;
+    }
+
+    // Otherwise, start animation if not already animating
+    if (!isAnimating && currentStroke === 0 && animationOptions) {
       startAnimation();
     }
 
-    // Cleanup timers on unmount
-    return () => {
-      animationRef.current.forEach(timer => clearTimeout(timer));
-    };
+    return cleanup;
   }, [kanjiData]);
 
   const startAnimation = () => {
@@ -241,12 +253,15 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
             ? animationOptions.radicalStyling.radicalRadius
             : animationOptions?.strokeStyling?.strokeRadius;
           
+          const shouldAnimate = animationOptions?.animate !== false;
           const isAnimating = strokeAnimations[i] === true;
           const isDrawing = strokeAnimations[`${i}_animating`] === true;
           const totalLen = strokeLengthsRef.current[i] ?? 1000;
           const strokeDuration = durationsRef.current[i] ?? Math.max(1, (totalLen / (animationOptions?.strokeSpeed ?? 1200)) * 1000);
           
-          // Stroke should be visible if currently drawing (isDrawing = true means stroke has been revealed and should stay visible)
+          // When animate is false, show all strokes immediately without animation styling
+          const showStroke = !shouldAnimate || isDrawing;
+          
           return (
             <path
               key={`stroke-${i}`}
@@ -256,10 +271,10 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
               strokeWidth={getStrokeWidth(isRadical)}
               strokeLinecap={strokeRadius && strokeRadius > 0 ? 'round' : 'square'}
               strokeLinejoin={strokeRadius && strokeRadius > 0 ? 'round' : 'miter'}
-              strokeDasharray={totalLen}
-              strokeDashoffset={isDrawing ? 0 : totalLen}
+              strokeDasharray={shouldAnimate ? totalLen : undefined}
+              strokeDashoffset={shouldAnimate ? (showStroke ? 0 : totalLen) : undefined}
               style={{
-                transition: isAnimating ? `stroke-dashoffset ${strokeDuration}ms linear` : 'none'
+                transition: shouldAnimate && isAnimating ? `stroke-dashoffset ${strokeDuration}ms linear` : 'none'
               }}
               ref={(el) => {
                 if (el) {

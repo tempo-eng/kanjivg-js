@@ -52,6 +52,8 @@ export interface AnimationOptions {
   showNumbers: boolean;        // Show stroke order numbers
   loop: boolean;              // Loop the animation
   showTrace: boolean;         // Show outline trace
+  /** If false, displays all strokes immediately without animation. Defaults to true. */
+  animate?: boolean;
   strokeStyling: StrokeStyling;
   radicalStyling?: RadicalStyling;
   traceStyling?: TraceStyling;
