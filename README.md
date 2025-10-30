@@ -16,6 +16,7 @@ This library was created using largely a spec-driven-development approach. The s
 
 ```bash
 npm install kanjivg-js
+yarn add kanjivg-js
 ```
 
 ## Setup for Web Applications
