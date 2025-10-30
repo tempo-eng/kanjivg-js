@@ -25,7 +25,7 @@ export function kvgJs() {
         }
 
         // Copy kanji directory
-        const kanjiSrc = join(process.cwd(), 'node_modules/kvg-js/dist/kanji');
+        const kanjiSrc = join(process.cwd(), 'node_modules/kanjivg-js/dist/kanji');
         const kanjiDest = join(publicDir, 'kanji');
         
         if (existsSync(kanjiSrc)) {
@@ -40,7 +40,7 @@ export function kvgJs() {
         }
 
         // Copy index files
-        const indexSrc = join(process.cwd(), 'node_modules/kvg-js/dist/kvg-index.json');
+        const indexSrc = join(process.cwd(), 'node_modules/kanjivg-js/dist/kvg-index.json');
         const indexDest = join(publicDir, 'kvg-index.json');
         
         if (existsSync(indexSrc)) {
@@ -48,7 +48,7 @@ export function kvgJs() {
           console.log('✓ Copied kvg-index.json');
         }
 
-        const radicalSrc = join(process.cwd(), 'node_modules/kvg-js/radical-index.json');
+        const radicalSrc = join(process.cwd(), 'node_modules/kanjivg-js/dist/radical-index.json');
         const radicalDest = join(publicDir, 'radical-index.json');
         
         if (existsSync(radicalSrc)) {

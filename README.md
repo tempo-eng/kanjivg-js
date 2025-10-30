@@ -2,7 +2,7 @@
 
 TypeScript/React library for searching and animating kanji characters using the KanjiVG dataset. This library was forked from the python library [kanjiVG](https://github.com/KanjiVG/kanjivg) and built to support similar functionality in a webapp environment. 
 
-This library was created using largely a spec-driven-development approach - this is my first attempt at using this approach. The spec files produced during development of this library can be found under `/SDD` and include:
+This library was created using largely a spec-driven-development approach. The spec files produced during development of this library can be found under `/SDD` and include:
 
 - initial requirements (project-requirements.md)
 - phase 1 investigation
@@ -13,7 +13,7 @@ This library was created using largely a spec-driven-development approach - this
 ## Installation
 
 ```bash
-npm install @tempo-eng/kanjivg-js
+npm install kanjivg-js
 ```
 
 ## Setup for Web Applications
@@ -23,7 +23,7 @@ npm install @tempo-eng/kanjivg-js
 Add to `vite.config.js`:
 
 ```javascript
-import { kvgJs } from '@tempo-eng/kanjivg-js/vite-plugin';
+import { kvgJs } from 'kanjivg-js/vite-plugin';
 
 export default defineConfig({
   plugins: [
@@ -38,7 +38,7 @@ export default defineConfig({
 Add to `webpack.config.js`:
 
 ```javascript
-const KvgJsPlugin = require('@tempo-eng/kanjivg-js/webpack-plugin');
+const KvgJsPlugin = require('kanjivg-js/webpack-plugin');
 
 module.exports = {
   plugins: [
@@ -146,8 +146,8 @@ interface RadicalInfo {
 ### Basic Example
 
 ```typescript
-import { KanjiVG } from '@tempo-eng/kanjivg-js';
-import { KanjiCard } from '@tempo-eng/kanjivg-js/react';
+import { KanjiVG } from 'kanjivg-js';
+import { KanjiCard } from 'kanjivg-js/react';
 
 // Create instance - initialization is automatic!
 const kv = new KanjiVG();

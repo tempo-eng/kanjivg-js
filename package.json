@@ -1,5 +1,5 @@
 {
-  "name": "@tempo-eng/kanjivg-js",
+  "name": "kanjivg-js",
   "version": "1.0.17",
   "description": "TypeScript/React library for searching and animating kanji",
   "main": "dist/index.js",
@@ -45,7 +45,8 @@
     "lint": "eslint src/**/*.{ts,tsx}",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build && npm run build:types",
-    "release": "scripts/release.sh"
+    "release-github": "scripts/release.sh",
+    "release-npm": "npm run prepublishOnly && npm publish --access public"
   },
   "keywords": [
     "kanji",

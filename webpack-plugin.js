@@ -29,7 +29,7 @@ class KvgJsPlugin {
         }
 
         // Copy kanji directory from this package
-        const kanjiSrc = join(process.cwd(), 'node_modules/@tempo-eng/kanjivg-js/dist/kanji');
+        const kanjiSrc = join(process.cwd(), 'node_modules/kanjivg-js/dist/kanji');
         const kanjiDest = join(publicDir, 'kanji');
         
         if (existsSync(kanjiSrc)) {
@@ -38,7 +38,7 @@ class KvgJsPlugin {
         }
 
         // Copy index files
-        const indexSrc = join(process.cwd(), 'node_modules/@tempo-eng/kanjivg-js/dist/kvg-index.json');
+        const indexSrc = join(process.cwd(), 'node_modules/kanjivg-js/dist/kvg-index.json');
         const indexDest = join(publicDir, 'kvg-index.json');
         
         if (existsSync(indexSrc)) {
@@ -46,7 +46,7 @@ class KvgJsPlugin {
           console.log('✓ Copied kvg-index.json');
         }
 
-        const radicalSrc = join(process.cwd(), 'node_modules/@tempo-eng/kanjivg-js/radical-index.json');
+        const radicalSrc = join(process.cwd(), 'node_modules/kanjivg-js/dist/radical-index.json');
         const radicalDest = join(publicDir, 'radical-index.json');
         
         if (existsSync(radicalSrc)) {
