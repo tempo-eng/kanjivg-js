@@ -1,6 +1,6 @@
 # kanjivg-js
 
-TypeScript/React library for searching and animating kanji characters using the KanjiVG dataset. This library was forked from the python library [kanjiVG](https://github.com/KanjiVG/kanjivg) and built to support similar functionality in a webapp environment. 
+TypeScript/React library for searching and animating kanji characters using the KanjiVG dataset. This library was based off the python library [kanjiVG](https://github.com/KanjiVG/kanjivg), and built to support similar functionality in a webapp environment. 
 
 A demo of the library can be found at: [https://kanji-companion.com/kanjivg_js](https://kanji-companion.com/kanjivg_js)
 
