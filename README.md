@@ -58,17 +58,20 @@ module.exports = {
 Get kanji data by character or unicode.
 
 ```typescript
+import { KanjiVG } from 'kanjivg-js'
+
 const data = await kv.getKanji('車');
 // Returns array with base kanji and any variants
 ```
 
-#### `searchRadical(radical: string): Promise<KanjiData[]>`
+#### `searchRadical(radical: string): Promise<string[]>`
 
-Search for kanji containing a specific radical.
+Get a list of kanji characters that contain a specific radical. This returns a string list of kanji with the radical.
 
 ```typescript
-const results = await kv.searchRadical('女');
-// Returns all kanji with the "女" radical
+const chars = await kv.searchRadical('女');
+// Later, when the user selects one:
+const [kanjiData] = await kv.getKanji(chars[0]);
 ```
 
 #### `getRandom(): Promise<KanjiData>`

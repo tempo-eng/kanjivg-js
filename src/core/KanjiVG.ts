@@ -122,9 +122,9 @@ export class KanjiVG {
   /**
    * Search for kanji containing a specific radical
    * @param radical - The radical character (e.g., "女")
-   * @returns Array of KanjiData objects
+   * @returns Array of characters containing the radical (no SVG loads)
    */
-  async searchRadical(radical: string): Promise<KanjiData[]> {
+  async searchRadical(radical: string): Promise<string[]> {
     // Load radical index if not already loaded
     if (!this.radicalIndexLoaded) {
       await this.loadRadicalIndex();
@@ -133,24 +133,10 @@ export class KanjiVG {
     // Get characters that contain this radical
     const characters = this.radicalIndex.get(radical) || [];
     
-    if (characters.length === 0) {
-      return [];
-    }
-
-    // Load kanji data for each character
-    const results: KanjiData[] = [];
-    for (const character of characters) {
-      try {
-        const kanjiData = await this.getKanji(character);
-        results.push(...kanjiData);
-      } catch (error) {
-        // Skip characters that fail to load
-        console.warn(`Failed to load kanji for radical search: ${character}`, error);
-      }
-    }
-
-    return results;
+    return characters;
   }
+
+  
 
   /**
    * Load the radical index file
@@ -228,17 +214,30 @@ export class KanjiVG {
         // For Vite, fetch from the source directory using absolute import
         const baseUrl = '/src/core/'; // Since we're in core/, go up to access kanji
         // Vite will handle resolving this from the correct location
-        const response = await fetch(`/kanji/${unicode}.svg`);
-        if (!response.ok && response.status !== 404) {
-          throw new Error(`Failed to fetch SVG: ${response.status}`);
+        // Retry with exponential backoff to handle 429s from dev servers
+        const maxAttempts = 5;
+        let attempt = 0;
+        let lastError: any;
+        while (attempt < maxAttempts) {
+          const response = await fetch(`/kanji/${unicode}.svg`);
+          if (response.ok) {
+            return await response.text();
+          }
+          if (response.status === 404) {
+            break;
+          }
+          lastError = new Error(`Failed to fetch SVG: ${response.status}`);
+          attempt++;
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 4000);
+          await new Promise(res => setTimeout(res, delay));
         }
-        if (response.ok) {
-          return await response.text();
+        if (lastError) {
+          throw lastError;
         }
         // If 404, try with parent path
         throw new Error('SVG not found at /kanji/');
       } catch (error) {
-        // Fallback: in a proper npm package setup, files would be at node_modules/kvg-js/kanji/
+        // Fallback: ensure informative error
         throw new KanjiVGError(
           `Failed to load SVG file: ${unicode}.svg. This character may not be in the dataset or files are not accessible. Error: ${error}`,
           ERROR_CODES.FILE_LOAD_ERROR
