@@ -16,7 +16,7 @@
     ".": {
       "import": "./dist/index.esm.js",
       "require": "./dist/index.js",
-      "types": "./dist/types/index.d.ts"
+      "types": "./dist/core/index.d.ts"
     },
     "./react": {
       "import": "./dist/react.esm.js",
