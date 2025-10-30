@@ -46,7 +46,13 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build && npm run build:types",
     "release-github": "scripts/release.sh",
-    "release-npm": "npm run prepublishOnly && npm publish --access public"
+    "release-npm": "npm run prepublishOnly && npm publish --access public",
+    "bump:patch": "npm version patch -m 'chore: release %s'",
+    "bump:minor": "npm version minor -m 'chore: release %s'",
+    "bump:major": "npm version major -m 'chore: release %s'",
+    "release-npm:patch": "npm run bump:patch && npm run release-npm",
+    "release-npm:minor": "npm run bump:minor && npm run release-npm",
+    "release-npm:major": "npm run bump:major && npm run release-npm"
   },
   "keywords": [
     "kanji",
