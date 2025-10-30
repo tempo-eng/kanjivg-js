@@ -11,29 +11,33 @@ interface RadicalIndex {
 }
 
 /**
- * Parse SVG file to extract radical information
+ * Parse SVG file to extract ONLY true radicals.
+ * We consider a radical to be any <g> that has a kvg:radical attribute.
+ * The displayed radical character is taken from that same group's kvg:element.
  */
 function parseSVGForRadicals(filePath: string, character: string): string[] {
   const svgContent = fs.readFileSync(filePath, 'utf8');
-  const radicals: string[] = [];
-  
-  // Extract radicals from kvg:radical attributes in groups
-  const radicalMatches = svgContent.matchAll(/kvg:radical="([^"]+)"/g);
-  for (const match of radicalMatches) {
-    radicals.push(match[1]);
-  }
-  
-  // Extract element attributes as potential radicals
-  const elementMatches = svgContent.matchAll(/kvg:element="([^"]+)"/g);
-  for (const match of elementMatches) {
-    const element = match[1];
-    // Filter out single characters that match the main character
-    if (element !== character && element.length <= 2) {
-      radicals.push(element);
+
+  // Find <g ... kvg:radical="..." ...> tags and capture their kvg:element values
+  const groupRegex = /<g\b[^>]*kvg:radical="([^"]+)"[^>]*>/g;
+  const elementAttrRegex = /kvg:element="([^"]+)"/;
+
+  const radicalsSet = new Set<string>();
+  let match: RegExpExecArray | null;
+  while ((match = groupRegex.exec(svgContent)) !== null) {
+    const radicalType = match[1];
+    if (radicalType !== 'general') {
+      continue;
+    }
+    const tagText = match[0];
+    const elementMatch = tagText.match(elementAttrRegex);
+    const element = elementMatch?.[1];
+    if (element && element !== character) {
+      radicalsSet.add(element);
     }
   }
-  
-  return radicals;
+
+  return Array.from(radicalsSet);
 }
 
 /**
