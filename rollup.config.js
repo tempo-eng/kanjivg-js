@@ -41,6 +41,7 @@ module.exports = [
         targets: [
           { src: 'kanji/**/*', dest: 'dist/kanji' },
           { src: 'kvg-index.json', dest: 'dist' },
+          { src: 'radical-index.json', dest: 'dist' },
         ],
       }),
     ],
@@ -68,6 +69,7 @@ module.exports = [
         targets: [
           { src: 'kanji/**/*', dest: 'dist/kanji' },
           { src: 'kvg-index.json', dest: 'dist' },
+          { src: 'radical-index.json', dest: 'dist' },
         ],
       }),
     ],
