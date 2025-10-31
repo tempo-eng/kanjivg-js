@@ -1,16 +1,16 @@
 ## Aim: to create a typescript / React based project for searching and animating kanji ##
 
-The library is expected to be imported into webapps and potentially into react native projects. 
-The library should be yarn/npm installable
-Where possible the library should be self contained and not require additional imports like files into /public folder
-Where possible, the library should load as little data into working memory so we don't eat up the javascript thread memory in production
-Where possible, we should leverage the existing python code in this current repo for working out how to extract kanji, radicals, strokes etc
+- The library is expected to be imported into webapps and potentially into react native projects. 
+- The library should be yarn/npm installable
+- Where possible the library should be self contained and not require additional imports like files into /public folder
+- Where possible, the library should load as little data into working memory so we don't eat up the javascript thread memory in production
+- Where possible, we should leverage the existing python code in this current repo for working out how to extract kanji, radicals, strokes etc
 
 ## Phase 1: investigation ##
-Read through this repository and map out the files and data structure. In particular map out the data structure of the kanji/ svg files. 
-In these files, understand the structure of the SVG files and how components, radicals, strokes and kanji are defined. 
-Map out what sort of functions this repository is able to do with the kanji data
-Map out how stroke order is defined in the files and how we should keep stroke order so we always draw kanji correctly.
+- Read through this repository and map out the files and data structure. In particular map out the data structure of the kanji/ svg files. 
+- In these files, understand the structure of the SVG files and how components, radicals, strokes and kanji are defined. 
+- Map out what sort of functions this repository is able to do with the kanji data
+- Map out how stroke order is defined in the files and how we should keep stroke order so we always draw kanji correctly.
 
 As an output, produce a document that I can review that outlines the above points for phase 1
 

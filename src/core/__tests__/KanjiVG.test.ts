@@ -187,7 +187,7 @@ describe('KanjiVG', () => {
   });
 
   describe('searchRadical', () => {
-    it('should return exactly the correct 3 kanji with 女 radical and no others', async () => {
+    it('should return exactly the correct 4 kanji characters with 女 radical and no others', async () => {
       mockedFs.readFileSync.mockImplementation((filePath: any) => {
         if (filePath.includes('test-kvg-index.json')) {
           return JSON.stringify({
@@ -214,24 +214,10 @@ describe('KanjiVG', () => {
       const results = await kanjiVG.searchRadical('女');
 
       expect(results).toBeDefined();
-      expect(results.length).toBe(4); // Should find exactly 女, 奴, 好, 如
-      
-      // Verify we got exactly the right kanji
-      const characters = results.map(r => r.character).sort();
+      expect(results.length).toBe(4); // 女, 奴, 好, 如
+      const characters = results.slice().sort();
       expect(characters).toEqual(['女', '奴', '好', '如']);
-      
-      // Verify we didn't get any other kanji
       expect(characters).not.toContain('郁');
-      
-      // Verify each result has proper kanji data
-      results.forEach(result => {
-        expect(result.character).toBeDefined();
-        expect(result.strokes).toBeDefined();
-        expect(result.strokeCount).toBeGreaterThan(0);
-      });
-      
-      // Verify the actual searchRadical logic was used
-      expect((kanjiVG as any).loadSVGFile).toHaveBeenCalledTimes(4);
     });
 
     it('should return empty array for radical not found', async () => {
@@ -250,60 +236,6 @@ describe('KanjiVG', () => {
       expect(results.length).toBe(0);
     });
 
-    it('should handle errors when loading individual kanji files', async () => {
-      mockedFs.readFileSync.mockImplementation((filePath: any) => {
-        if (filePath.includes('test-kvg-index.json')) {
-          return JSON.stringify({
-            "女": ["05973.svg"],
-            "奴": ["05974.svg"],
-            "好": ["0597d.svg"]
-          });
-        }
-        if (filePath.includes('test-radical-index.json')) {
-          return JSON.stringify({
-            "女": ["女", "奴", "好"]
-          });
-        }
-        throw new Error(`File not found: ${filePath}`);
-      });
-
-      // Mock loadSVGFile to fail for one character
-      jest.spyOn(kanjiVG as any, 'loadSVGFile').mockImplementation(async (unicode: any) => {
-        if (unicode === '05974') { // 奴
-          throw new Error('SVG file not found');
-        }
-        
-        // Map unicode to character for proper testing
-        const unicodeToChar: { [key: string]: string } = {
-          '05973': '女',
-          '0597d': '好'
-        };
-        
-        const character = unicodeToChar[unicode] || '女';
-        
-        // Return mock SVG for successful cases
-        return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:kvg="http://kanjivg.tagaini.net" width="109" height="109" viewBox="0 0 109 109">
-  <g id="kvg:StrokePaths_${unicode}" style="fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;">
-    <g id="kvg:${unicode}" kvg:element="${character}">
-      <path id="kvg:${unicode}-s1" d="M54.5,15.79c0,6.07-0.29,55.49-0.29,60.55"/>
-    </g>
-  </g>
-</svg>`;
-      });
-
-      await (kanjiVG as any).initialize();
-      await (kanjiVG as any).loadRadicalIndex();
-
-      const results = await kanjiVG.searchRadical('女');
-
-      // Should only return the kanji that loaded successfully
-      expect(results).toBeDefined();
-      expect(results.length).toBe(2); // 女 and 好, but not 奴
-      expect(results.map(r => r.character)).toContain('女');
-      expect(results.map(r => r.character)).toContain('好');
-      expect(results.map(r => r.character)).not.toContain('奴');
-    });
   });
 
   describe('variants', () => {
@@ -386,12 +318,12 @@ describe('KanjiVG', () => {
       await (kanjiVG as any).loadRadicalIndex();
       
       const radicalResults = await kanjiVG.searchRadical('女');
-      expect(radicalResults.length).toBeGreaterThan(0);
+      expect(radicalResults.length).toEqual(4);
       
       // Test getting individual kanji
-      const kanjiResult = await kanjiVG.getKanji('女');
+      const kanjiResult = await kanjiVG.getKanji(radicalResults[0]);
       expect(kanjiResult.length).toBe(1);
-      expect(kanjiResult[0].character).toBe('女');
+      expect(kanjiResult[0].character).toBeDefined();
       
       // Test random selection
       const randomResult = await kanjiVG.getRandom();

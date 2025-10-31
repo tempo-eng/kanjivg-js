@@ -14,3 +14,9 @@ jest.mock('path', () => ({
   resolve: jest.fn((...args) => args.join('/')),
   basename: jest.fn((file) => file.split('/').pop()),
 }));
+
+// // Type declaration shim for react-dom/test-utils to avoid TS7016 in tests
+// // We only use `act` in tests, and Jest environment provides the runtime.
+// declare module 'react-dom/test-utils' {
+//   export const act: (callback: () => void | Promise<void>) => void | Promise<void>;
+// }

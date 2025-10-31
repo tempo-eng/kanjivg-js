@@ -280,7 +280,7 @@ describe('KanjiCard', () => {
 
       const onComplete = jest.fn();
       
-      render(
+    render(
         <KanjiCard 
           kanji={niKanji} 
           animationOptions={animationOptions}
