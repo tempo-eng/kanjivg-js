@@ -372,5 +372,120 @@ describe('KanjiCard', () => {
       }
     });
   });
+
+  describe('Radical highlighting with general/tradit fallback', () => {
+    // 問 has 門 (nelson) and 口 (tradit) radicals, no general
+    const monKanji: KanjiData = {
+      character: '問',
+      unicode: '0554f',
+      isVariant: false,
+      strokes: [
+        // Strokes 1-8 belong to 門 group (nelson radical)
+        { strokeNumber: 1, path: 'M18.39,15.04', strokeType: '㇑', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
+        { strokeNumber: 2, path: 'M20.52,16.91', strokeType: '㇕a', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
+        { strokeNumber: 3, path: 'M21.2,29.49', strokeType: '㇐a', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
+        { strokeNumber: 4, path: 'M21.27,42.06', strokeType: '㇐a', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
+        { strokeNumber: 5, path: 'M64.36,12.26', strokeType: '㇑', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
+        { strokeNumber: 6, path: 'M66.55,14.16', strokeType: '㇆a', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
+        { strokeNumber: 7, path: 'M67.24,25.22', strokeType: '㇐a', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
+        { strokeNumber: 8, path: 'M67.05,36.76', strokeType: '㇐a', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
+        // Strokes 9-11 belong to 口 group (tradit radical)
+        { strokeNumber: 9, path: 'M36.25,57.11', strokeType: '㇑', groupId: 'kvg:0554f-g4', isRadicalStroke: true },
+        { strokeNumber: 10, path: 'M38.71,59.66', strokeType: '㇕b', groupId: 'kvg:0554f-g4', isRadicalStroke: true },
+        { strokeNumber: 11, path: 'M42.01,78.52', strokeType: '㇐b', groupId: 'kvg:0554f-g4', isRadicalStroke: true },
+      ],
+      groups: [
+        {
+          id: 'kvg:0554f-g1',
+          element: '門',
+          radical: 'nelson',
+          position: 'kamae',
+          childStrokes: [1, 2, 3, 4, 5, 6, 7, 8],
+          children: [],
+        },
+        {
+          id: 'kvg:0554f-g4',
+          element: '口',
+          radical: 'tradit',
+          childStrokes: [9, 10, 11],
+          children: [],
+        },
+      ],
+      strokeCount: 11,
+      components: ['問'],
+    };
+
+    it('should highlight tradit radical (口) for 問 when radicalStyling is provided without radicalType', async () => {
+      const animationOptions: AnimationOptions = {
+        ...defaultAnimationOptions,
+        animate: false,
+        radicalStyling: {
+          radicalColour: 'red',
+          radicalThickness: 5,
+          radicalRadius: 0,
+          // radicalType not specified - should auto-detect tradit (no general found)
+        },
+      };
+
+      const { container } = render(
+        <KanjiCard kanji={monKanji} animationOptions={animationOptions} />
+      );
+
+      await waitFor(() => {
+        const paths = container.querySelectorAll('path');
+        expect(paths.length).toBe(11); // All 11 strokes
+        
+        // Strokes 9-11 (口, tradit) should be red (radical color)
+        const stroke9 = paths[8]; // 0-indexed
+        const stroke10 = paths[9];
+        const stroke11 = paths[10];
+        
+        expect(stroke9.getAttribute('stroke')).toBe('red');
+        expect(stroke9.getAttribute('stroke-width')).toBe('5');
+        expect(stroke10.getAttribute('stroke')).toBe('red');
+        expect(stroke10.getAttribute('stroke-width')).toBe('5');
+        expect(stroke11.getAttribute('stroke')).toBe('red');
+        expect(stroke11.getAttribute('stroke-width')).toBe('5');
+        
+        // Strokes 1-8 (門, nelson) should be black (normal stroke color, NOT highlighted)
+        const stroke1 = paths[0];
+        const stroke5 = paths[4];
+        
+        expect(stroke1.getAttribute('stroke')).toBe('black');
+        expect(stroke1.getAttribute('stroke-width')).toBe('3');
+        expect(stroke5.getAttribute('stroke')).toBe('black');
+        expect(stroke5.getAttribute('stroke-width')).toBe('3');
+      });
+    });
+
+    it('should NOT highlight nelson radicals even if present', async () => {
+      const animationOptions: AnimationOptions = {
+        ...defaultAnimationOptions,
+        animate: false,
+        radicalStyling: {
+          radicalColour: 'blue',
+          radicalThickness: 4,
+          radicalRadius: 0,
+          radicalType: ['general', 'tradit'], // Explicitly exclude nelson
+        },
+      };
+
+      const { container } = render(
+        <KanjiCard kanji={monKanji} animationOptions={animationOptions} />
+      );
+
+      await waitFor(() => {
+        const paths = container.querySelectorAll('path');
+        
+        // Only 口 (tradit) strokes should be blue
+        const stroke9 = paths[8];
+        expect(stroke9.getAttribute('stroke')).toBe('blue');
+        
+        // 門 (nelson) strokes should be black
+        const stroke1 = paths[0];
+        expect(stroke1.getAttribute('stroke')).toBe('black');
+      });
+    });
+  });
 });
 

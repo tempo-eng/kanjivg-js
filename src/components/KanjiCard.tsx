@@ -221,8 +221,10 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
   if (Array.isArray(specifiedTypes) && specifiedTypes.length > 0) {
     // User specified types - use as-is
     effectiveRadicalTypes = specifiedTypes;
-  } else {
-    // Auto-detect: prefer general, fallback to tradit
+  } else if (animationOptions?.radicalStyling) {
+    // Auto-detect only when radicalStyling exists but radicalType not specified
+    // Prefer general, fallback to tradit
+    // Note: nelson is NEVER included in auto-detection
     const hasGeneral = kanjiData.groups.some(g => g.radical === 'general');
     if (hasGeneral) {
       effectiveRadicalTypes = ['general'];
@@ -265,11 +267,20 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
         {/* Animated strokes */}
         {kanjiData.strokes.slice(0, currentStroke).map((stroke, i) => {
           // Determine if this stroke should be treated as radical based on effective radical types
-          let isRadical = !!stroke.isRadicalStroke;
-          if (isRadical && effectiveRadicalTypes) {
-            const group = kanjiData.groups.find(g => g.id === stroke.groupId);
-            const groupType = group?.radical as (undefined | 'general' | 'nelson' | 'tradit');
-            isRadical = !!groupType && effectiveRadicalTypes.includes(groupType);
+          let isRadical = false;
+          if (stroke.isRadicalStroke) {
+            if (effectiveRadicalTypes) {
+              // Filter by radical type: check all groups this stroke belongs to
+              const matchingGroup = kanjiData.groups.find(g => 
+                g.childStrokes.includes(stroke.strokeNumber) && 
+                g.radical && 
+                effectiveRadicalTypes.includes(g.radical as 'general' | 'nelson' | 'tradit')
+              );
+              isRadical = !!matchingGroup;
+            } else {
+              // No radicalType filtering specified - show all radicals
+              isRadical = true;
+            }
           }
           const strokeRadius = isRadical && animationOptions?.radicalStyling
             ? animationOptions.radicalStyling.radicalRadius
