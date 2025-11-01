@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { KanjiCard } from '../KanjiCard';
 import { KanjiData, AnimationOptions } from '../../types';
+import { SVGParser } from '../../core/SVGParser';
 
 describe('KanjiCard', () => {
   const mockKanjiData: KanjiData = {
@@ -375,47 +376,123 @@ describe('KanjiCard', () => {
 
   describe('Radical highlighting with general/tradit fallback', () => {
     // 問 has 門 (nelson) and 口 (tradit) radicals, no general
-    const monKanji: KanjiData = {
-      character: '問',
-      unicode: '0554f',
-      isVariant: false,
-      strokes: [
-        // Strokes 1-8 belong to 門 group (nelson radical)
-        { strokeNumber: 1, path: 'M18.39,15.04', strokeType: '㇑', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
-        { strokeNumber: 2, path: 'M20.52,16.91', strokeType: '㇕a', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
-        { strokeNumber: 3, path: 'M21.2,29.49', strokeType: '㇐a', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
-        { strokeNumber: 4, path: 'M21.27,42.06', strokeType: '㇐a', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
-        { strokeNumber: 5, path: 'M64.36,12.26', strokeType: '㇑', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
-        { strokeNumber: 6, path: 'M66.55,14.16', strokeType: '㇆a', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
-        { strokeNumber: 7, path: 'M67.24,25.22', strokeType: '㇐a', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
-        { strokeNumber: 8, path: 'M67.05,36.76', strokeType: '㇐a', groupId: 'kvg:0554f-g1', isRadicalStroke: true },
-        // Strokes 9-11 belong to 口 group (tradit radical)
-        { strokeNumber: 9, path: 'M36.25,57.11', strokeType: '㇑', groupId: 'kvg:0554f-g4', isRadicalStroke: true },
-        { strokeNumber: 10, path: 'M38.71,59.66', strokeType: '㇕b', groupId: 'kvg:0554f-g4', isRadicalStroke: true },
-        { strokeNumber: 11, path: 'M42.01,78.52', strokeType: '㇐b', groupId: 'kvg:0554f-g4', isRadicalStroke: true },
-      ],
-      groups: [
-        {
-          id: 'kvg:0554f-g1',
-          element: '門',
-          radical: 'nelson',
-          position: 'kamae',
-          childStrokes: [1, 2, 3, 4, 5, 6, 7, 8],
-          children: [],
-        },
-        {
-          id: 'kvg:0554f-g4',
-          element: '口',
-          radical: 'tradit',
-          childStrokes: [9, 10, 11],
-          children: [],
-        },
-      ],
-      strokeCount: 11,
-      components: ['問'],
-    };
+    const monKanji = `
+    <?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright (C) 2009/2010/2011 Ulrich Apel.
+This work is distributed under the conditions of the Creative Commons
+Attribution-Share Alike 3.0 Licence. This means you are free:
+* to Share - to copy, distribute and transmit the work
+* to Remix - to adapt the work
+
+Under the following conditions:
+* Attribution. You must attribute the work by stating your use of KanjiVG in
+  your own copyright header and linking to KanjiVG's website
+  (http://kanjivg.tagaini.net)
+* Share Alike. If you alter, transform, or build upon this work, you may
+  distribute the resulting work only under the same or similar license to this
+  one.
+
+See http://creativecommons.org/licenses/by-sa/3.0/ for more details.
+-->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd" [
+<!ATTLIST g
+xmlns:kvg CDATA #FIXED "http://kanjivg.tagaini.net"
+kvg:element CDATA #IMPLIED
+kvg:variant CDATA #IMPLIED
+kvg:partial CDATA #IMPLIED
+kvg:original CDATA #IMPLIED
+kvg:part CDATA #IMPLIED
+kvg:number CDATA #IMPLIED
+kvg:tradForm CDATA #IMPLIED
+kvg:radicalForm CDATA #IMPLIED
+kvg:position CDATA #IMPLIED
+kvg:radical CDATA #IMPLIED
+kvg:phon CDATA #IMPLIED >
+<!ATTLIST path
+xmlns:kvg CDATA #FIXED "http://kanjivg.tagaini.net"
+kvg:type CDATA #IMPLIED >
+]>
+<svg xmlns="http://www.w3.org/2000/svg" width="109" height="109" viewBox="0 0 109 109">
+<g id="kvg:StrokePaths_0554f" style="fill:none;stroke:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;">
+<g id="kvg:0554f" kvg:element="問">
+	<g id="kvg:0554f-g1" kvg:element="門" kvg:position="kamae" kvg:radical="nelson" kvg:phon="門">
+		<g id="kvg:0554f-g2" kvg:position="left">
+			<path id="kvg:0554f-s1" kvg:type="㇑" d="M18.39,15.04c1.22,1.22,1.93,3.12,1.93,4.92c0,0.89,0.01,50,0.01,70.67c0,3.77,0,6.6,0,8.01"/>
+			<path id="kvg:0554f-s2" kvg:type="㇕a" d="M20.52,16.91c6.35-1.16,14.8-2.87,19.12-3.56c2.64-0.42,4.88-0.16,4.75,3.02c-0.13,2.95-0.88,15.16-1.28,21.75c-0.14,2.41-0.24,4.08-0.24,4.26"/>
+			<path id="kvg:0554f-s3" kvg:type="㇐a" d="M21.2,29.49c6.8-1.24,14.3-2.24,21.38-2.83"/>
+			<path id="kvg:0554f-s4" kvg:type="㇐a" d="M21.27,42.06c8.11-1.29,13.14-1.76,20.31-2.36"/>
+		</g>
+		<g id="kvg:0554f-g3" kvg:position="right">
+			<path id="kvg:0554f-s5" kvg:type="㇑" d="M64.36,12.26c1,1,1.54,2.24,1.54,3.65c0,0.68-0.06,12.96-0.08,19.84c-0.01,1.89-0.01,3.38-0.01,4.1"/>
+			<path id="kvg:0554f-s6" kvg:type="㇆a" d="M66.55,14.16c5.82-1.03,14.49-2.29,19.57-2.95c2.67-0.35,4.85,0.79,4.85,2.92c0,20.13,0.04,63.76,0.04,77.56c0,8.69-5.51,3.56-9.9-0.64"/>
+			<path id="kvg:0554f-s7" kvg:type="㇐a" d="M67.24,25.22c6.63-0.84,17.38-1.84,22.15-2.24"/>
+			<path id="kvg:0554f-s8" kvg:type="㇐a" d="M67.05,36.76c6.2-0.51,15.45-1.51,22.55-2.06"/>
+		</g>
+	</g>
+	<g id="kvg:0554f-g4" kvg:element="口" kvg:radical="tradit">
+		<path id="kvg:0554f-s9" kvg:type="㇑" d="M36.25,57.11c0.88,0.64,1.62,1.76,1.87,2.92c0.92,4.35,1.84,11.03,2.61,17.07c0.15,1.17,0.29,2.31,0.43,3.41"/>
+		<path id="kvg:0554f-s10" kvg:type="㇕b" d="M38.71,59.66c9.11-1.03,21.45-2.32,27.33-2.98c3.34-0.37,4.76,0.9,4.01,4.37c-0.9,4.17-1.73,8.1-3.59,14.23"/>
+		<path id="kvg:0554f-s11" kvg:type="㇐b" d="M42.01,78.52c4.47-0.52,15.74-1.45,23.11-2.08c1.29-0.11,2.46-0.22,3.46-0.31"/>
+	</g>
+</g>
+</g>
+<g id="kvg:StrokeNumbers_0554f" style="font-size:8;fill:#808080">
+	<text transform="matrix(1 0 0 1 13.50 25.50)">1</text>
+	<text transform="matrix(1 0 0 1 22.50 13.50)">2</text>
+	<text transform="matrix(1 0 0 1 25.50 25.63)">3</text>
+	<text transform="matrix(1 0 0 1 25.50 39.13)">4</text>
+	<text transform="matrix(1 0 0 1 58.50 22.63)">5</text>
+	<text transform="matrix(1 0 0 1 68.50 10.50)">6</text>
+	<text transform="matrix(1 0 0 1 70.50 22.50)">7</text>
+	<text transform="matrix(1 0 0 1 70.50 33.50)">8</text>
+	<text transform="matrix(1 0 0 1 30.50 66.50)">9</text>
+	<text transform="matrix(1 0 0 1 39.50 56.50)">10</text>
+	<text transform="matrix(1 0 0 1 44.50 74.50)">11</text>
+</g>
+</svg>
+`
 
     it('should highlight tradit radical (口) for 問 when radicalStyling is provided without radicalType', async () => {
+      // Step 1: Parse the SVG using SVGParser (actual production code)
+      const parser = new SVGParser();
+      parser.clearCache(); // Ensure fresh parsing
+      const parsedKanjiData = parser.parseSVG(monKanji.trim(), '0554f');
+      
+      // Step 2: Verify the radicals were parsed correctly
+      expect(parsedKanjiData.groups).toBeDefined();
+      expect(parsedKanjiData.groups.length).toBeGreaterThan(0);
+      
+      // Verify nelson group (g1, 門) exists and has correct strokes (1-8 only)
+      const nelsonGroup = parsedKanjiData.groups.find(g => g.radical === 'nelson');
+      expect(nelsonGroup).toBeDefined();
+      expect(nelsonGroup?.element).toBe('門');
+      expect(nelsonGroup?.childStrokes.length).toBe(8);
+      expect(nelsonGroup?.childStrokes).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+      expect(nelsonGroup?.childStrokes).not.toContain(9);
+      expect(nelsonGroup?.childStrokes).not.toContain(10);
+      expect(nelsonGroup?.childStrokes).not.toContain(11);
+      
+      // Verify tradit group (g4, 口) exists and has correct strokes (9-11 only)
+      const traditGroup = parsedKanjiData.groups.find(g => g.radical === 'tradit');
+      expect(traditGroup).toBeDefined();
+      expect(traditGroup?.element).toBe('口');
+      expect(traditGroup?.childStrokes.length).toBe(3);
+      expect(traditGroup?.childStrokes).toEqual([9, 10, 11]);
+      
+      // Verify strokes 9-11 are marked as radical strokes
+      const stroke9 = parsedKanjiData.strokes.find(s => s.strokeNumber === 9);
+      const stroke10 = parsedKanjiData.strokes.find(s => s.strokeNumber === 10);
+      const stroke11 = parsedKanjiData.strokes.find(s => s.strokeNumber === 11);
+      expect(stroke9?.isRadicalStroke).toBe(true);
+      expect(stroke10?.isRadicalStroke).toBe(true);
+      expect(stroke11?.isRadicalStroke).toBe(true);
+      
+      // Verify strokes 1-8 are marked as radical strokes (they belong to nelson)
+      const stroke1 = parsedKanjiData.strokes.find(s => s.strokeNumber === 1);
+      expect(stroke1?.isRadicalStroke).toBe(true);
+      
+      // Step 3: Test KanjiCard with the parsed data
       const animationOptions: AnimationOptions = {
         ...defaultAnimationOptions,
         animate: false,
@@ -428,7 +505,7 @@ describe('KanjiCard', () => {
       };
 
       const { container } = render(
-        <KanjiCard kanji={monKanji} animationOptions={animationOptions} />
+        <KanjiCard kanji={parsedKanjiData} animationOptions={animationOptions} />
       );
 
       await waitFor(() => {
@@ -459,6 +536,11 @@ describe('KanjiCard', () => {
     });
 
     it('should NOT highlight nelson radicals even if present', async () => {
+      // Parse the SVG using SVGParser
+      const parser = new SVGParser();
+      parser.clearCache();
+      const parsedKanjiData = parser.parseSVG(monKanji.trim(), '0554f');
+      
       const animationOptions: AnimationOptions = {
         ...defaultAnimationOptions,
         animate: false,
@@ -471,7 +553,7 @@ describe('KanjiCard', () => {
       };
 
       const { container } = render(
-        <KanjiCard kanji={monKanji} animationOptions={animationOptions} />
+        <KanjiCard kanji={parsedKanjiData} animationOptions={animationOptions} />
       );
 
       await waitFor(() => {

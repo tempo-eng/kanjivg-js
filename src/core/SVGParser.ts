@@ -19,8 +19,31 @@ export class SVGParser {
       return this.cache.get(cacheKey)!;
     }
 
+    // Preprocess SVG: Strip DOCTYPE (which can cause parsing issues in some environments)
+    // and ensure kvg namespace is declared
+    let processedSvg = svgContent;
+    
+    // Strip DOCTYPE declaration - some DOMParser implementations can't handle external DTD references
+    // DOCTYPE can have the format: <!DOCTYPE ... [...]> where [...] is the internal subset
+    processedSvg = processedSvg.replace(/<!DOCTYPE[\s\S]*?]>/g, '');
+    
+    // Add the kvg namespace declaration to the SVG tag if it's missing
+    // The DOCTYPE had the namespace declaration, so we need to add it back
+    if (!processedSvg.includes('xmlns:kvg')) {
+      processedSvg = processedSvg.replace(
+        /<svg([^>]*)>/,
+        '<svg$1 xmlns:kvg="http://kanjivg.tagaini.net">'
+      );
+    }
+
     const parser = new DOMParser();
-    const doc = parser.parseFromString(svgContent, 'image/svg+xml');
+    const doc = parser.parseFromString(processedSvg, 'image/svg+xml');
+    
+    // Check for parse errors
+    const parseError = doc.querySelector('parsererror');
+    if (parseError) {
+      throw new Error(`Failed to parse SVG for ${unicode}: ${parseError.textContent?.substring(0, 200)}`);
+    }
 
     // Extract character
     const character = this.extractCharacter(doc, unicode);
@@ -138,14 +161,46 @@ export class SVGParser {
       const position = groupEl.getAttribute('kvg:position') || undefined;
       
       // Find child paths to determine stroke numbers
-      const childPaths = Array.from(groupEl.querySelectorAll('path'));
+      // CRITICAL: Only get direct child paths, NOT paths from nested radical groups
+      // We need to traverse nested position groups (g2, g3) but NOT nested radical groups (g4, etc.)
+      // A radical group is identified by having both -g in the id AND a kvg:radical attribute
+      const directChildPaths: Element[] = [];
+      
+      // Recursively find paths that are NOT inside nested radical group elements
+      const collectDirectPaths = (el: Element) => {
+        for (const child of Array.from(el.children)) {
+          if (child.tagName === 'path') {
+            directChildPaths.push(child);
+          } else if (child.tagName === 'g') {
+            // Check if this is a nested radical group (has -g in id AND kvg:radical attribute)
+            // Position groups (like g2, g3) only have kvg:position, not kvg:radical
+            const childId = child.getAttribute('id') || '';
+            const childRadical = child.getAttribute('kvg:radical');
+            
+            if (childId.includes('-g') && childRadical) {
+              // This is a nested radical group - stop here, don't include its paths
+              // Paths inside nested radical groups belong to those groups, not this one
+            } else {
+              // This is a position group or other non-radical group - continue traversing
+              collectDirectPaths(child);
+            }
+          } else {
+            // Other element types, continue traversing
+            collectDirectPaths(child);
+          }
+        }
+      };
+      
+      collectDirectPaths(groupEl);
+      
       const childStrokes: number[] = [];
       
-      // This is a simplified version - would need to track actual stroke numbers
-      // For now, we'll determine this based on path order in the document
+      // Determine stroke numbers based on path order in the document
       const allPaths = Array.from(strokeGroup.querySelectorAll('path'));
-      childPaths.forEach(childPath => {
-        const pathIndex = allPaths.indexOf(childPath);
+      directChildPaths.forEach(childPath => {
+        // Find the index of this path element in the allPaths array
+        // We need to compare by element identity, not just attributes
+        const pathIndex = allPaths.findIndex(p => p === childPath);
         if (pathIndex !== -1) {
           childStrokes.push(pathIndex + 1);
         }

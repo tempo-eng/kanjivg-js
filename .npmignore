@@ -1,0 +1,14 @@
+demo
+.DS_Store
+*.log
+*.test.ts
+*.test.tsx
+__tests__
+SDD
+scripts
+tsconfig.json
+rollup.config.js
+vite-plugin.js
+webpack-plugin.js
+jest.config.js
+

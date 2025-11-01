@@ -224,7 +224,9 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
   } else if (animationOptions?.radicalStyling) {
     // Auto-detect only when radicalStyling exists but radicalType not specified
     // Prefer general, fallback to tradit
-    // Note: nelson is NEVER included in auto-detection
+    kanjiData.groups.forEach(g => {
+      console.log(g.radical);
+    });
     const hasGeneral = kanjiData.groups.some(g => g.radical === 'general');
     if (hasGeneral) {
       effectiveRadicalTypes = ['general'];
