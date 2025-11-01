@@ -215,6 +215,22 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
   const renderInfoBefore = shouldShowInfo && (effectiveLocation === 'left' || effectiveLocation === 'top');
   const renderInfoAfter = shouldShowInfo && (effectiveLocation === 'right' || effectiveLocation === 'bottom');
 
+  // Determine effective radical types: use specified types, or fallback to general/tradit
+  const specifiedTypes = animationOptions?.radicalStyling?.radicalType;
+  let effectiveRadicalTypes: Array<'general' | 'nelson' | 'tradit'> | undefined;
+  if (Array.isArray(specifiedTypes) && specifiedTypes.length > 0) {
+    // User specified types - use as-is
+    effectiveRadicalTypes = specifiedTypes;
+  } else {
+    // Auto-detect: prefer general, fallback to tradit
+    const hasGeneral = kanjiData.groups.some(g => g.radical === 'general');
+    if (hasGeneral) {
+      effectiveRadicalTypes = ['general'];
+    } else {
+      effectiveRadicalTypes = ['tradit'];
+    }
+  }
+
   return (
     <div className={className || 'kanji-card'} style={getContainerStyle()}>
       {renderInfoBefore && (
@@ -248,13 +264,12 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
         
         {/* Animated strokes */}
         {kanjiData.strokes.slice(0, currentStroke).map((stroke, i) => {
-          // Determine if this stroke should be treated as radical based on radicalType selection
-          const selectedTypes = animationOptions?.radicalStyling?.radicalType;
+          // Determine if this stroke should be treated as radical based on effective radical types
           let isRadical = !!stroke.isRadicalStroke;
-          if (isRadical && Array.isArray(selectedTypes) && selectedTypes.length > 0) {
+          if (isRadical && effectiveRadicalTypes) {
             const group = kanjiData.groups.find(g => g.id === stroke.groupId);
             const groupType = group?.radical as (undefined | 'general' | 'nelson' | 'tradit');
-            isRadical = !!groupType && selectedTypes.includes(groupType);
+            isRadical = !!groupType && effectiveRadicalTypes.includes(groupType);
           }
           const strokeRadius = isRadical && animationOptions?.radicalStyling
             ? animationOptions.radicalStyling.radicalRadius
