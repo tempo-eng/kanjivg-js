@@ -11,9 +11,9 @@ interface RadicalIndex {
 }
 
 /**
- * Parse SVG file to extract ONLY true radicals.
- * We consider a radical to be any <g> that has a kvg:radical attribute.
- * The displayed radical character is taken from that same group's kvg:element.
+ * Parse SVG file to extract radicals.
+ * Priority: "general" first, fallback to "tradit" if no "general" found.
+ * The displayed radical character is taken from the group's kvg:element.
  */
 function parseSVGForRadicals(filePath: string, character: string): string[] {
   const svgContent = fs.readFileSync(filePath, 'utf8');
@@ -23,17 +23,29 @@ function parseSVGForRadicals(filePath: string, character: string): string[] {
   const elementAttrRegex = /kvg:element="([^"]+)"/;
 
   const radicalsSet = new Set<string>();
+  const allRadicals: Array<{type: string, element: string}> = [];
+  
+  // First pass: collect all radicals with their types
   let match: RegExpExecArray | null;
   while ((match = groupRegex.exec(svgContent)) !== null) {
     const radicalType = match[1];
-    if (radicalType !== 'general') {
-      continue;
-    }
     const tagText = match[0];
     const elementMatch = tagText.match(elementAttrRegex);
     const element = elementMatch?.[1];
-    if (element && element !== character) {
-      radicalsSet.add(element);
+    if (element && element !== character && (radicalType === 'general' || radicalType === 'tradit')) {
+      allRadicals.push({ type: radicalType, element });
+    }
+  }
+
+  // Check if we have any "general" radicals
+  const hasGeneral = allRadicals.some(r => r.type === 'general');
+  
+  // Index based on priority: general first, tradit as fallback
+  for (const radical of allRadicals) {
+    if (hasGeneral && radical.type === 'general') {
+      radicalsSet.add(radical.element);
+    } else if (!hasGeneral && radical.type === 'tradit') {
+      radicalsSet.add(radical.element);
     }
   }
 
