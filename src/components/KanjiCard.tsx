@@ -138,8 +138,17 @@ export const KanjiCard: React.FC<KanjiCardProps> = ({
       }
     };
 
-    // Kick off first stroke
-    runStroke(0);
+    // Apply animation start delay if specified
+    const startDelay = animationOptions.animationStartDelay || 0;
+    if (startDelay > 0) {
+      const delayTimer = setTimeout(() => {
+        runStroke(0);
+      }, startDelay);
+      animationRef.current.push(delayTimer);
+    } else {
+      // Kick off first stroke immediately
+      runStroke(0);
+    }
   };
 
   const getStrokeColor = (strokeNum: number, isRadical: boolean = false): string => {

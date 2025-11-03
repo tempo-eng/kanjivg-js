@@ -244,6 +244,7 @@ Animation options:
   // Timing
   strokeSpeed?: number;     // SVG pixels per second (uniform speed per stroke)
   strokeDelay?: number;     // Delay between strokes (ms)
+  animationStartDelay?: number;  // Delay before animation starts (ms, defaults to 0)
   loop?: boolean;           // Loop animation
   animate?: boolean;         // If false, displays all strokes immediately without animation (defaults to true)
   

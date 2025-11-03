@@ -49,6 +49,8 @@ export interface AnimationOptions {
   strokeDelay: number;        // Delay between strokes (ms)
   /** Animate at constant speed (SVG pixels per second). */
   strokeSpeed?: number;
+  /** Delay before animation starts (ms). Defaults to 0. */
+  animationStartDelay?: number;
   showNumbers: boolean;        // Show stroke order numbers
   loop: boolean;              // Loop the animation
   showTrace: boolean;         // Show outline trace
